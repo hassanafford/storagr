@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNotification } from '../components/NotificationProvider';
-import { getAllCategories, createCategory, updateCategory, deleteCategory } from '../services/categoryService';
+import { getAllCategoriesService, createCategoryService, updateCategoryService, deleteCategoryService } from '../services/categoryService';
 import { getAllWarehouses } from '../services/warehouseService';
 
 function CategoriesPage() {
@@ -24,7 +24,7 @@ function CategoriesPage() {
   const loadCategories = async () => {
     try {
       setLoading(true);
-      const data = await getAllCategories();
+      const data = await getAllCategoriesService();
       setCategories(data);
       setLoading(false);
     } catch (error) {
@@ -92,14 +92,14 @@ function CategoriesPage() {
     try {
       if (editingCategory) {
         // Update existing category
-        await updateCategory(editingCategory.id, formData);
+        await updateCategoryService(editingCategory.id, formData);
         addNotification({
           message: 'تم تحديث الفئة بنجاح',
           type: 'success'
         });
       } else {
         // Create new category
-        await createCategory(formData);
+        await createCategoryService(formData);
         addNotification({
           message: 'تم إنشاء الفئة بنجاح',
           type: 'success'
@@ -134,7 +134,7 @@ function CategoriesPage() {
   const handleDelete = async (id) => {
     if (window.confirm('هل أنت متأكد من حذف هذه الفئة؟')) {
       try {
-        await deleteCategory(id);
+        await deleteCategoryService(id);
         addNotification({
           message: 'تم حذف الفئة بنجاح',
           type: 'success'

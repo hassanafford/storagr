@@ -8,8 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Package, TrendingDown, TrendingUp, Repeat } from 'lucide-react';
 import { useNotification } from './NotificationProvider';
-import { getItemsByWarehouse } from '../services/itemService';
-import { createTransaction } from '../services/itemService';
+import { getItemsByWarehouseService } from '../services/itemService';
+import { createTransactionService } from '../services/itemService';
 
 const TransactionForms = ({ user, warehouse, onTransactionComplete }) => {
   const { addNotification } = useNotification();
@@ -45,7 +45,7 @@ const TransactionForms = ({ user, warehouse, onTransactionComplete }) => {
     
     try {
       setLoadingItems(true);
-      const data = await getItemsByWarehouse(warehouse.id);
+      const data = await getItemsByWarehouseService(warehouse.id);
       setItems(data);
     } catch (error) {
       console.error('Error loading items:', error);
@@ -105,7 +105,7 @@ const TransactionForms = ({ user, warehouse, onTransactionComplete }) => {
         notes: issueForm.notes
       };
 
-      await createTransaction(transactionData);
+      await createTransactionService(transactionData);
       
       addNotification({
         message: 'تم صرف العنصر بنجاح',
@@ -162,7 +162,7 @@ const TransactionForms = ({ user, warehouse, onTransactionComplete }) => {
         notes: returnForm.notes
       };
 
-      await createTransaction(transactionData);
+      await createTransactionService(transactionData);
       
       addNotification({
         message: 'تم إرجاع العنصر بنجاح',
@@ -228,7 +228,7 @@ const TransactionForms = ({ user, warehouse, onTransactionComplete }) => {
         notes: exchangeForm.notes ? `استبدال: ${exchangeForm.notes}` : 'استبدال عنصر'
       };
 
-      await createTransaction(exchangeOutData);
+      await createTransactionService(exchangeOutData);
 
       // Create exchange in transaction (positive quantity)
       const exchangeInData = {
@@ -239,7 +239,7 @@ const TransactionForms = ({ user, warehouse, onTransactionComplete }) => {
         notes: exchangeForm.notes ? `استبدال: ${exchangeForm.notes}` : 'استبدال عنصر'
       };
 
-      await createTransaction(exchangeInData);
+      await createTransactionService(exchangeInData);
       
       addNotification({
         message: 'تم استبدال العنصر بنجاح',

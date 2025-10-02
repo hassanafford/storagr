@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNotification } from '../components/NotificationProvider';
-import { getWarehouseById } from '../services/warehouseService';
-import { getItemsByWarehouse, updateItemQuantity, createTransaction, getTransactionsByWarehouse } from '../services/itemService';
+import { getWarehouseByIdService } from '../services/warehouseService';
+import { getItemsByWarehouseService, updateItemQuantityService, createTransactionService, getTransactionsByWarehouseService } from '../services/itemService';
 import { useNavigate } from 'react-router-dom';
 import { Menu, X, Home, Warehouse, FileText } from 'lucide-react';
 import analyticsService from '../services/analyticsService';
 import DashboardPieChart from '../components/DashboardPieChart';
-import { initWebSocket, disconnectWebSocket } from '../db';
+import { initNotificationWebSocket, disconnectWebSocket } from '../services/websocketService';
 
 function EmployeeDashboardPage({ user }) {
   const [activeTab, setActiveTab] = useState('analytics');
@@ -15,12 +15,12 @@ function EmployeeDashboardPage({ user }) {
   const { addNotification } = useNotification();
   const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  
+
   // Analytics state
   const [analyticsData, setAnalyticsData] = useState(null);
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
   const [analyticsError, setAnalyticsError] = useState(null);
-  
+
   // WebSocket state
   const [websocketInitialized, setWebsocketInitialized] = useState(false);
 
@@ -28,7 +28,7 @@ function EmployeeDashboardPage({ user }) {
     const loadWarehouse = async () => {
       try {
         if (user.warehouse_id) {
-          const warehouseData = await getWarehouseById(user.warehouse_id);
+          const warehouseData = await getWarehouseByIdService(user.warehouse_id);
           setWarehouse(warehouseData);
           // Load analytics data for employee
           loadEmployeeAnalytics(user.warehouse_id);
@@ -51,7 +51,7 @@ function EmployeeDashboardPage({ user }) {
   useEffect(() => {
     if (!websocketInitialized && warehouse) {
       try {
-        initWebSocket((notification) => {
+        initNotificationWebSocket((notification) => {
           // Handle real-time notifications
           addNotification({
             message: notification.message,
@@ -59,10 +59,10 @@ function EmployeeDashboardPage({ user }) {
             quantity: notification.quantity,
             type: notification.type
           });
-          
+
           // Refresh data when notifications are received
           loadEmployeeAnalytics(warehouse.id);
-          
+
           // Refresh transaction log if it's currently active
           if (activeTab === 'log') {
             // The TransactionLog component will handle its own refresh
@@ -73,7 +73,7 @@ function EmployeeDashboardPage({ user }) {
         console.error('Failed to initialize WebSocket:', error);
       }
     }
-    
+
     // Clean up WebSocket connection on unmount
     return () => {
       if (websocketInitialized) {
@@ -140,7 +140,7 @@ function EmployeeDashboardPage({ user }) {
           <p className="text-gray-600 text-sm sm:text-base">المخزن: {warehouse?.name}</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <button 
+          <button
             onClick={() => navigate(`/warehouses/${warehouse?.id}`)}
             className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition flex items-center"
           >
@@ -150,7 +150,7 @@ function EmployeeDashboardPage({ user }) {
             <span className="hidden sm:inline">عرض تفاصيل المخزن</span>
             <span className="sm:hidden">تفاصيل</span>
           </button>
-          <button 
+          <button
             onClick={() => navigate('/reports')}
             className="bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition flex items-center"
           >
@@ -158,7 +158,7 @@ function EmployeeDashboardPage({ user }) {
             <span className="hidden sm:inline">التقارير</span>
             <span className="sm:hidden">تقارير</span>
           </button>
-          <button 
+          <button
             onClick={() => setActiveTab('log')}
             className="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition flex items-center"
           >
@@ -170,86 +170,80 @@ function EmployeeDashboardPage({ user }) {
           </button>
         </div>
       </div>
-      
+
       {/* Desktop Tab Navigation */}
       <div className="hidden sm:flex border-b border-gray-200 mb-6">
         <button
-          className={`py-2 px-4 font-medium text-sm whitespace-nowrap ${
-            activeTab === 'analytics' 
-              ? 'text-blue-600 border-b-2 border-blue-600' 
-              : 'text-gray-500 hover:text-gray-700 hover:border-gray-300'
-          }`}
+          className={`py-2 px-4 font-medium text-sm whitespace-nowrap ${activeTab === 'analytics'
+            ? 'text-blue-600 border-b-2 border-blue-600'
+            : 'text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
           onClick={() => setActiveTab('analytics')}
         >
           التحليلات
         </button>
         <button
-          className={`py-2 px-4 font-medium text-sm whitespace-nowrap ${
-            activeTab === 'issue' 
-              ? 'text-blue-600 border-b-2 border-blue-600' 
-              : 'text-gray-500 hover:text-gray-700 hover:border-gray-300'
-          }`}
+          className={`py-2 px-4 font-medium text-sm whitespace-nowrap ${activeTab === 'issue'
+            ? 'text-blue-600 border-b-2 border-blue-600'
+            : 'text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
           onClick={() => setActiveTab('issue')}
         >
           صرف عناصر
         </button>
         <button
-          className={`py-2 px-4 font-medium text-sm whitespace-nowrap ${
-            activeTab === 'return' 
-              ? 'text-blue-600 border-b-2 border-blue-600' 
-              : 'text-gray-500 hover:text-gray-700 hover:border-gray-300'
-          }`}
+          className={`py-2 px-4 font-medium text-sm whitespace-nowrap ${activeTab === 'return'
+            ? 'text-blue-600 border-b-2 border-blue-600'
+            : 'text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
           onClick={() => setActiveTab('return')}
         >
           إرجاع عناصر
         </button>
         <button
-          className={`py-2 px-4 font-medium text-sm whitespace-nowrap ${
-            activeTab === 'exchange' 
-              ? 'text-blue-600 border-b-2 border-blue-600' 
-              : 'text-gray-500 hover:text-gray-700 hover:border-gray-300'
-          }`}
+          className={`py-2 px-4 font-medium text-sm whitespace-nowrap ${activeTab === 'exchange'
+            ? 'text-blue-600 border-b-2 border-blue-600'
+            : 'text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
           onClick={() => setActiveTab('exchange')}
         >
           تبديل عناصر
         </button>
         <button
-          className={`py-2 px-4 font-medium text-sm whitespace-nowrap ${
-            activeTab === 'log' 
-              ? 'text-green-600 border-b-2 border-green-600' 
-              : 'text-gray-500 hover:text-gray-700 hover:border-gray-300'
-          }`}
+          className={`py-2 px-4 font-medium text-sm whitespace-nowrap ${activeTab === 'log'
+            ? 'text-green-600 border-b-2 border-green-600'
+            : 'text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
           onClick={() => setActiveTab('log')}
         >
           سجل الحركات
         </button>
       </div>
-      
+
       {/* Mobile Tab Navigation */}
       <div className="sm:hidden mb-4">
         <div className="flex justify-between items-center mb-2">
           <h3 className="text-sm font-medium text-gray-700">
             {tabItems.find(tab => tab.id === activeTab)?.name}
           </h3>
-          <button 
+          <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             className="bg-gray-100 p-2 rounded-lg"
           >
             {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
         </div>
-        
+
         {isMobileMenuOpen && (
           <div className="bg-gray-50 rounded-lg p-2 mb-4">
             <div className="grid grid-cols-2 gap-2">
               {tabItems.map((tab) => (
                 <button
                   key={tab.id}
-                  className={`flex items-center justify-center p-2 rounded-lg text-sm font-medium ${
-                    activeTab === tab.id 
-                      ? 'bg-blue-100 text-blue-700' 
-                      : 'bg-white text-gray-700 hover:bg-gray-100'
-                  }`}
+                  className={`flex items-center justify-center p-2 rounded-lg text-sm font-medium ${activeTab === tab.id
+                    ? 'bg-blue-100 text-blue-700'
+                    : 'bg-white text-gray-700 hover:bg-gray-100'
+                    }`}
                   onClick={() => {
                     setActiveTab(tab.id);
                     setIsMobileMenuOpen(false);
@@ -263,7 +257,7 @@ function EmployeeDashboardPage({ user }) {
           </div>
         )}
       </div>
-      
+
       <div className="tab-content">
         {activeTab === 'analytics' && (
           <div className="space-y-6">
@@ -284,17 +278,17 @@ function EmployeeDashboardPage({ user }) {
                 </div>
               </div>
             )}
-            
+
             {/* Analytics Charts */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <DashboardPieChart 
+              <DashboardPieChart
                 title="توزيع الأصناف حسب النوع"
                 data={analyticsData?.itemsByCategory || []}
                 onRefresh={() => loadEmployeeAnalytics(warehouse.id)}
                 loading={analyticsLoading}
                 error={analyticsError}
               />
-              <DashboardPieChart 
+              <DashboardPieChart
                 title="أنواع المعاملات"
                 data={analyticsData?.transactionTypes || []}
                 onRefresh={() => loadEmployeeAnalytics(warehouse.id)}
@@ -342,15 +336,15 @@ function IssueItemsForm({ addNotification, user, warehouse }) {
 
     if (warehouse) {
       loadItems();
-      
+
       // Set up real-time data synchronization
       const interval = setInterval(() => {
         loadItems();
       }, 30000); // Refresh every 30 seconds
-      
+
       setRefreshInterval(interval);
     }
-    
+
     return () => {
       if (refreshInterval) {
         clearInterval(refreshInterval);
@@ -368,7 +362,7 @@ function IssueItemsForm({ addNotification, user, warehouse }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!selectedItem || !recipient) {
       addNotification({
         message: 'يرجى ملء جميع الحقول المطلوبة',
@@ -376,7 +370,7 @@ function IssueItemsForm({ addNotification, user, warehouse }) {
       });
       return;
     }
-    
+
     try {
       // Create transaction record
       const transactionData = {
@@ -387,24 +381,24 @@ function IssueItemsForm({ addNotification, user, warehouse }) {
         recipient: recipient,
         notes: notes
       };
-      
-      await createTransaction(transactionData);
-      
+
+      await createTransactionService(transactionData);
+
       // Update item quantity
-      await updateItemQuantity(selectedItem, -quantity);
-      
+      await updateItemQuantityService(selectedItem, -quantity);
+
       addNotification({
         message: 'تم صرف العنصر بنجاح!',
         type: 'success'
       });
-      
+
       // Reset form
       setQuantity(1);
       setRecipient('');
       setNotes('');
-      
+
       // Refresh items list
-      const data = await getItemsByWarehouse(warehouse.id);
+      const data = await getItemsByWarehouseService(warehouse.id);
       setItems(data);
     } catch (error) {
       console.error('Error issuing item:', error);
@@ -425,11 +419,11 @@ function IssueItemsForm({ addNotification, user, warehouse }) {
           <p className="text-blue-700 text-sm">اختر العنصر الذي تريد صرفه، ثم قدم تفاصيل المستلم.</p>
         </div>
       </div>
-      
+
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">العنصر</label>
-          <select 
+          <select
             value={selectedItem}
             onChange={(e) => setSelectedItem(e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -440,34 +434,34 @@ function IssueItemsForm({ addNotification, user, warehouse }) {
             ))}
           </select>
         </div>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">الكمية</label>
-            <input 
-              type="number" 
-              min="1" 
+            <input
+              type="number"
+              min="1"
               value={quantity}
               onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">المستلم</label>
-            <input 
-              type="text" 
+            <input
+              type="text"
               value={recipient}
               onChange={(e) => setRecipient(e.target.value)}
-              placeholder="اسم الطالب/الموظف" 
+              placeholder="اسم الطالب/الموظف"
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
         </div>
-        
+
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">ملاحظات (اختياري)</label>
-          <textarea 
+          <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             placeholder="أي ملاحظات إضافية حول هذا الصرف"
@@ -475,9 +469,9 @@ function IssueItemsForm({ addNotification, user, warehouse }) {
             rows="3"
           ></textarea>
         </div>
-        
+
         <div className="flex justify-end">
-          <button 
+          <button
             type="submit"
             className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition duration-300"
           >
@@ -518,15 +512,15 @@ function ReturnItemsForm({ addNotification, user, warehouse }) {
 
     if (warehouse) {
       loadItems();
-      
+
       // Set up real-time data synchronization
       const interval = setInterval(() => {
         loadItems();
       }, 30000); // Refresh every 30 seconds
-      
+
       setRefreshInterval(interval);
     }
-    
+
     return () => {
       if (refreshInterval) {
         clearInterval(refreshInterval);
@@ -544,7 +538,7 @@ function ReturnItemsForm({ addNotification, user, warehouse }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!selectedItem) {
       addNotification({
         message: 'يرجى اختيار العنصر المراد إرجاعه',
@@ -552,7 +546,7 @@ function ReturnItemsForm({ addNotification, user, warehouse }) {
       });
       return;
     }
-    
+
     try {
       // Create transaction record
       const transactionData = {
@@ -563,22 +557,22 @@ function ReturnItemsForm({ addNotification, user, warehouse }) {
         recipient: condition,
         notes: notes
       };
-      
+
       await createTransaction(transactionData);
-      
+
       // Update item quantity
       await updateItemQuantity(selectedItem, quantity);
-      
+
       addNotification({
         message: 'تم إرجاع العنصر بنجاح!',
         type: 'success'
       });
-      
+
       // Reset form
       setQuantity(1);
       setCondition('good');
       setNotes('');
-      
+
       // Refresh items list
       const data = await getItemsByWarehouse(warehouse.id);
       setItems(data);
@@ -601,11 +595,11 @@ function ReturnItemsForm({ addNotification, user, warehouse }) {
           <p className="text-green-700 text-sm">اختر العنصر الذي تريد إرجاعه، وحدد حالة العنصر.</p>
         </div>
       </div>
-      
+
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">العنصر</label>
-          <select 
+          <select
             value={selectedItem}
             onChange={(e) => setSelectedItem(e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -616,26 +610,26 @@ function ReturnItemsForm({ addNotification, user, warehouse }) {
             ))}
           </select>
         </div>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               الكمية
             </label>
-            <input 
-              type="number" 
-              min="1" 
+            <input
+              type="number"
+              min="1"
               value={quantity}
               onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               حالة العنصر
             </label>
-            <select 
+            <select
               value={condition}
               onChange={(e) => setCondition(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -646,10 +640,10 @@ function ReturnItemsForm({ addNotification, user, warehouse }) {
             </select>
           </div>
         </div>
-        
+
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">ملاحظات (اختياري)</label>
-          <textarea 
+          <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             placeholder="أي ملاحظات إضافية حول هذا الإرجاع"
@@ -657,9 +651,9 @@ function ReturnItemsForm({ addNotification, user, warehouse }) {
             rows="3"
           ></textarea>
         </div>
-        
+
         <div className="flex justify-end">
-          <button 
+          <button
             type="submit"
             className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-6 rounded-lg transition duration-300"
           >
@@ -702,15 +696,15 @@ function ExchangeItemsForm({ addNotification, user, warehouse }) {
 
     if (warehouse) {
       loadItems();
-      
+
       // Set up real-time data synchronization
       const interval = setInterval(() => {
         loadItems();
       }, 30000); // Refresh every 30 seconds
-      
+
       setRefreshInterval(interval);
     }
-    
+
     return () => {
       if (refreshInterval) {
         clearInterval(refreshInterval);
@@ -728,7 +722,7 @@ function ExchangeItemsForm({ addNotification, user, warehouse }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!outgoingItem || !incomingItem || !recipient) {
       addNotification({
         message: 'يرجى ملء جميع الحقول المطلوبة',
@@ -736,7 +730,7 @@ function ExchangeItemsForm({ addNotification, user, warehouse }) {
       });
       return;
     }
-    
+
     try {
       // Create outgoing transaction record
       const outgoingTransactionData = {
@@ -747,12 +741,12 @@ function ExchangeItemsForm({ addNotification, user, warehouse }) {
         recipient: recipient,
         notes: notes ? `تبديل: ${notes}` : 'تبديل عنصر'
       };
-      
+
       await createTransaction(outgoingTransactionData);
-      
+
       // Update outgoing item quantity
       await updateItemQuantity(outgoingItem, -outgoingQuantity);
-      
+
       // Create incoming transaction record
       const incomingTransactionData = {
         item_id: incomingItem,
@@ -762,23 +756,23 @@ function ExchangeItemsForm({ addNotification, user, warehouse }) {
         recipient: recipient,
         notes: notes ? `تبديل: ${notes}` : 'تبديل عنصر'
       };
-      
+
       await createTransaction(incomingTransactionData);
-      
+
       // Update incoming item quantity
       await updateItemQuantity(incomingItem, incomingQuantity);
-      
+
       addNotification({
         message: 'تم تبديل العناصر بنجاح!',
         type: 'success'
       });
-      
+
       // Reset form
       setOutgoingQuantity(1);
       setIncomingQuantity(1);
       setRecipient('');
       setNotes('');
-      
+
       // Refresh items list
       const data = await getItemsByWarehouse(warehouse.id);
       setItems(data);
@@ -801,16 +795,16 @@ function ExchangeItemsForm({ addNotification, user, warehouse }) {
           <p className="text-purple-700 text-sm">حدد العنصر taxpع والوارد، وكمياتهما، وتفاصيل المستلم.</p>
         </div>
       </div>
-      
+
       <form onSubmit={handleSubmit} className="space-y-6">
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="border border-gray-200 rounded-lg p-4">
             <h3 className="font-medium text-gray-800 mb-3">العنصر taxpع</h3>
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">العنصر</label>
-                <select 
+                <select
                   value={outgoingItem}
                   onChange={(e) => setOutgoingItem(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -821,12 +815,12 @@ function ExchangeItemsForm({ addNotification, user, warehouse }) {
                   ))}
                 </select>
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">الكمية</label>
-                <input 
-                  type="number" 
-                  min="1" 
+                <input
+                  type="number"
+                  min="1"
                   value={outgoingQuantity}
                   onChange={(e) => setOutgoingQuantity(parseInt(e.target.value) || 1)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -834,13 +828,13 @@ function ExchangeItemsForm({ addNotification, user, warehouse }) {
               </div>
             </div>
           </div>
-          
+
           <div className="border border-gray-200 rounded-lg p-4">
             <h3 className="font-medium text-gray-800 mb-3">العنصر الوارد</h3>
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">العنصر</label>
-                <select 
+                <select
                   value={incomingItem}
                   onChange={(e) => setIncomingItem(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -851,12 +845,12 @@ function ExchangeItemsForm({ addNotification, user, warehouse }) {
                   ))}
                 </select>
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">الكمية</label>
-                <input 
-                  type="number" 
-                  min="1" 
+                <input
+                  type="number"
+                  min="1"
                   value={incomingQuantity}
                   onChange={(e) => setIncomingQuantity(parseInt(e.target.value) || 1)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -865,23 +859,23 @@ function ExchangeItemsForm({ addNotification, user, warehouse }) {
             </div>
           </div>
         </div>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">المستلم</label>
-            <input 
-              type="text" 
+            <input
+              type="text"
               value={recipient}
               onChange={(e) => setRecipient(e.target.value)}
-              placeholder="اسم الطالب/الموظف" 
+              placeholder="اسم الطالب/الموظف"
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
         </div>
-        
+
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">ملاحظات (اختياري)</label>
-          <textarea 
+          <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             placeholder="أي ملاحظات إضافية حول هذا التبديل"
@@ -889,9 +883,9 @@ function ExchangeItemsForm({ addNotification, user, warehouse }) {
             rows="3"
           ></textarea>
         </div>
-        
+
         <div className="flex justify-end">
-          <button 
+          <button
             type="submit"
             className="bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-6 rounded-lg transition duration-300"
           >
@@ -927,15 +921,15 @@ function TransactionLog({ addNotification, user, warehouse }) {
 
     if (warehouse) {
       loadTransactions();
-      
+
       // Set up real-time data synchronization
       const interval = setInterval(() => {
         loadTransactions();
       }, 30000); // Refresh every 30 seconds
-      
+
       setRefreshInterval(interval);
     }
-    
+
     return () => {
       if (refreshInterval) {
         clearInterval(refreshInterval);
@@ -947,7 +941,7 @@ function TransactionLog({ addNotification, user, warehouse }) {
     const date = new Date(dateString);
     const now = new Date();
     const diffInMinutes = Math.floor((now - date) / (1000 * 60));
-    
+
     if (diffInMinutes < 1) return 'الآن';
     if (diffInMinutes < 60) return `منذ ${diffInMinutes} دقيقة`;
     if (diffInMinutes < 1440) return `منذ ${Math.floor(diffInMinutes / 60)} ساعة`;
@@ -972,7 +966,7 @@ function TransactionLog({ addNotification, user, warehouse }) {
           <p className="text-green-700 text-sm">سجل جميع الحركات في مخزن {warehouse.name}</p>
         </div>
       </div>
-      
+
       <div className="bg-white rounded-lg shadow overflow-hidden">
         {transactions.length > 0 ? (
           <table className="min-w-full divide-y divide-gray-200">
@@ -991,16 +985,15 @@ function TransactionLog({ addNotification, user, warehouse }) {
                 <tr key={transaction.id}>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{transaction.item_name}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                      transaction.transaction_type === 'issue' ? 'bg-blue-100 text-blue-800' :
+                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${transaction.transaction_type === 'issue' ? 'bg-blue-100 text-blue-800' :
                       transaction.transaction_type === 'return' ? 'bg-green-100 text-green-800' :
-                      'bg-purple-100 text-purple-800'
-                    }`}>
-                      {transaction.transaction_type === 'issue' ? 'صرف' : 
-                       transaction.transaction_type === 'return' ? 'إرجاع' : 
-                       transaction.transaction_type === 'exchange_out' ? 'تبديل (تصبع)' : 
-                       transaction.transaction_type === 'exchange_in' ? 'تبديل (وارد)' : 
-                       transaction.transaction_type}
+                        'bg-purple-100 text-purple-800'
+                      }`}>
+                      {transaction.transaction_type === 'issue' ? 'صرف' :
+                        transaction.transaction_type === 'return' ? 'إرجاع' :
+                          transaction.transaction_type === 'exchange_out' ? 'تبديل (تصبع)' :
+                            transaction.transaction_type === 'exchange_in' ? 'تبديل (وارد)' :
+                              transaction.transaction_type}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{Math.abs(transaction.quantity)}</td>

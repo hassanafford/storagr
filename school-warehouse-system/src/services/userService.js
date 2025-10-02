@@ -1,4 +1,4 @@
-import api from '../db';
+import { authenticateUser, getUserByNationalId, getAllUsers, createUser, updateUser, deleteUser } from '../db';
 
 // Save user to localStorage
 export const saveUser = (user) => {
@@ -17,9 +17,9 @@ export const logoutUser = () => {
 };
 
 // Authenticate user
-export const authenticateUser = async (nationalId, password) => {
+export const authenticateUserService = async (nationalId, password) => {
   try {
-    const response = await api.authenticateUser(nationalId, password);
+    const response = await authenticateUser(nationalId, password);
     
     if (response.token && response.user) {
       // Save user with token to localStorage
@@ -42,9 +42,9 @@ export const authenticateUser = async (nationalId, password) => {
 };
 
 // Get user by national ID
-export const getUserByNationalId = async (nationalId) => {
+export const getUserByNationalIdService = async (nationalId) => {
   try {
-    const response = await api.getUserByNationalId(nationalId);
+    const response = await getUserByNationalId(nationalId);
     return response;
   } catch (error) {
     console.error('Error fetching user:', error);
@@ -53,9 +53,9 @@ export const getUserByNationalId = async (nationalId) => {
 };
 
 // Get all users (admin only)
-export const getAllUsers = async () => {
+export const getAllUsersService = async () => {
   try {
-    const response = await api.getAllUsers();
+    const response = await getAllUsers();
     return response;
   } catch (error) {
     console.error('Error fetching users:', error);
@@ -64,9 +64,9 @@ export const getAllUsers = async () => {
 };
 
 // Create user (admin only)
-export const createUser = async (userData) => {
+export const createUserService = async (userData) => {
   try {
-    const response = await api.createUser(userData);
+    const response = await createUser(userData);
     return response;
   } catch (error) {
     console.error('Error creating user:', error);
@@ -75,9 +75,9 @@ export const createUser = async (userData) => {
 };
 
 // Update user (admin only)
-export const updateUser = async (id, userData) => {
+export const updateUserService = async (id, userData) => {
   try {
-    const response = await api.updateUser(id, userData);
+    const response = await updateUser(id, userData);
     return response;
   } catch (error) {
     console.error('Error updating user:', error);
@@ -86,9 +86,9 @@ export const updateUser = async (id, userData) => {
 };
 
 // Delete user (admin only)
-export const deleteUser = async (id) => {
+export const deleteUserService = async (id) => {
   try {
-    const response = await api.deleteUser(id);
+    const response = await deleteUser(id);
     return response;
   } catch (error) {
     console.error('Error deleting user:', error);

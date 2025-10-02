@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNotification } from '../components/NotificationProvider';
-import { getAllWarehouses, createWarehouse, updateWarehouse, deleteWarehouse, getWarehouseStats } from '../services/warehouseService';
+import { getAllWarehouses, createWarehouseService, updateWarehouseService, deleteWarehouseService, getWarehouseStatsService } from '../services/warehouseService';
 
 function WarehousesPage() {
   const { addNotification } = useNotification();
@@ -29,7 +29,7 @@ function WarehousesPage() {
       const stats = {};
       for (const warehouse of data) {
         try {
-          const warehouseStats = await getWarehouseStats(warehouse.id);
+          const warehouseStats = await getWarehouseStatsService(warehouse.id);
           stats[warehouse.id] = warehouseStats;
         } catch (error) {
           console.error(`Error loading stats for warehouse ${warehouse.id}:`, error);
@@ -85,14 +85,14 @@ function WarehousesPage() {
     try {
       if (editingWarehouse) {
         // Update existing warehouse
-        await updateWarehouse(editingWarehouse.id, formData);
+        await updateWarehouseService(editingWarehouse.id, formData);
         addNotification({
           message: 'تم تحديث المخزن بنجاح',
           type: 'success'
         });
       } else {
         // Create new warehouse
-        await createWarehouse(formData);
+        await createWarehouseService(formData);
         addNotification({
           message: 'تم إنشاء المخزن بنجاح',
           type: 'success'
@@ -127,7 +127,7 @@ function WarehousesPage() {
   const handleDelete = async (id) => {
     if (window.confirm('هل أنت متأكد من حذف هذا المخزن؟')) {
       try {
-        await deleteWarehouse(id);
+        await deleteWarehouseService(id);
         addNotification({
           message: 'تم حذف المخزن بنجاح',
           type: 'success'

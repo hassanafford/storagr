@@ -14,11 +14,10 @@ import {
   CheckCircle
 } from 'lucide-react';
 import { useNotification } from '../components/NotificationProvider';
-import { getWarehouseById, getWarehouseItems, getWarehouseStats } from '../services/warehouseService';
-import { getTransactionsByWarehouse } from '../services/itemService';
+import { getWarehouseByIdService, getWarehouseItemsService, getWarehouseStatsService } from '../services/warehouseService';
+import { getTransactionsByWarehouseService } from '../services/itemService';
 import DailyAudit from '../components/DailyAudit';
 import TransactionForms from '../components/TransactionForms';
-import { initWebSocket, disconnectWebSocket } from '../db';
 
 const EnhancedEmployeeDashboardPage = ({ user }) => {
   const { addNotification } = useNotification();
@@ -36,19 +35,19 @@ const EnhancedEmployeeDashboardPage = ({ user }) => {
         setLoading(true);
         
         // Load warehouse details
-        const warehouseData = await getWarehouseById(user.warehouse_id);
+        const warehouseData = await getWarehouseByIdService(user.warehouse_id);
         setWarehouse(warehouseData);
         
         // Load items for this warehouse
-        const itemsData = await getWarehouseItems(user.warehouse_id);
+        const itemsData = await getWarehouseItemsService(user.warehouse_id);
         setItems(itemsData);
         
         // Load warehouse stats
-        const statsData = await getWarehouseStats(user.warehouse_id);
+        const statsData = await getWarehouseStatsService(user.warehouse_id);
         setStats(statsData);
         
         // Load transactions for this warehouse
-        const transactionsData = await getTransactionsByWarehouse(user.warehouse_id);
+        const transactionsData = await getTransactionsByWarehouseService(user.warehouse_id);
         setTransactions(transactionsData);
         
         setLoading(false);
@@ -67,49 +66,22 @@ const EnhancedEmployeeDashboardPage = ({ user }) => {
     }
   }, [user]);
 
-  // Initialize WebSocket for real-time updates
-  useEffect(() => {
-    try {
-      initWebSocket((notification) => {
-        // Handle real-time notifications
-        addNotification({
-          message: notification.message,
-          details: notification.details,
-          quantity: notification.quantity,
-          type: notification.type
-        });
-        
-        // Refresh data when notifications are received
-        if (user && user.warehouse_id) {
-          loadWarehouseData();
-        }
-      });
-    } catch (error) {
-      console.error('Failed to initialize WebSocket:', error);
-    }
-    
-    // Clean up WebSocket connection on unmount
-    return () => {
-      disconnectWebSocket();
-    };
-  }, [user]);
-
   const loadWarehouseData = async () => {
     try {
       // Load warehouse details
-      const warehouseData = await getWarehouseById(user.warehouse_id);
+      const warehouseData = await getWarehouseByIdService(user.warehouse_id);
       setWarehouse(warehouseData);
       
       // Load items for this warehouse
-      const itemsData = await getWarehouseItems(user.warehouse_id);
+      const itemsData = await getWarehouseItemsService(user.warehouse_id);
       setItems(itemsData);
       
       // Load warehouse stats
-      const statsData = await getWarehouseStats(user.warehouse_id);
+      const statsData = await getWarehouseStatsService(user.warehouse_id);
       setStats(statsData);
       
       // Load transactions for this warehouse
-      const transactionsData = await getTransactionsByWarehouse(user.warehouse_id);
+      const transactionsData = await getTransactionsByWarehouseService(user.warehouse_id);
       setTransactions(transactionsData);
     } catch (error) {
       console.error('Error refreshing warehouse data:', error);

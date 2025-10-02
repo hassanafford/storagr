@@ -1,8 +1,8 @@
-import { api } from '../db';
+import { getCategories, getCategoryById, createCategory, updateCategory, deleteCategory } from '../db';
 
-export const getAllCategories = async () => {
+export const getAllCategoriesService = async () => {
   try {
-    const data = await api.getCategories();
+    const data = await getCategories();
     return data;
   } catch (error) {
     console.error('Error fetching categories:', error);
@@ -10,9 +10,9 @@ export const getAllCategories = async () => {
   }
 };
 
-export const getCategoryById = async (id) => {
+export const getCategoryByIdService = async (id) => {
   try {
-    const data = await api.getCategoryById(id);
+    const data = await getCategoryById(id);
     return data;
   } catch (error) {
     console.error('Error fetching category:', error);
@@ -20,7 +20,7 @@ export const getCategoryById = async (id) => {
   }
 };
 
-export const createCategory = async (categoryData) => {
+export const createCategoryService = async (categoryData) => {
   // Form validation
   if (!categoryData.name || categoryData.name.trim() === '') {
     throw new Error('اسم الفئة مطلوب');
@@ -35,7 +35,7 @@ export const createCategory = async (categoryData) => {
   }
   
   try {
-    const data = await api.createCategory(categoryData);
+    const data = await createCategory(categoryData);
     return data;
   } catch (error) {
     console.error('Error creating category:', error);
@@ -43,7 +43,7 @@ export const createCategory = async (categoryData) => {
   }
 };
 
-export const updateCategory = async (id, categoryData) => {
+export const updateCategoryService = async (id, categoryData) => {
   // Form validation
   if (!categoryData.name || categoryData.name.trim() === '') {
     throw new Error('اسم الفئة مطلوب');
@@ -58,7 +58,7 @@ export const updateCategory = async (id, categoryData) => {
   }
   
   try {
-    const data = await api.updateCategory(id, categoryData);
+    const data = await updateCategory(id, categoryData);
     return data;
   } catch (error) {
     console.error('Error updating category:', error);
@@ -66,9 +66,9 @@ export const updateCategory = async (id, categoryData) => {
   }
 };
 
-export const deleteCategory = async (id) => {
+export const deleteCategoryService = async (id) => {
   try {
-    const data = await api.deleteCategory(id);
+    const data = await deleteCategory(id);
     return data;
   } catch (error) {
     console.error('Error deleting category:', error);

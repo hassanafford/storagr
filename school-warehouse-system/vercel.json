@@ -17,5 +17,9 @@
   ],
   "github": {
     "silent": true
+  },
+  "env": {
+    "VITE_SUPABASE_URL": "https://xuwoixfgusvufgaliswt.supabase.co",
+    "VITE_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh1d29peGZndXN2dWZnYWxpc3d0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyNTgxMzksImV4cCI6MjA3NDgzNDEzOX0.Jb7tH4eGgIfzMaxWcZud_aytC0I-UXMYYZoPsvOAlP4"
   }
 }

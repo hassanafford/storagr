@@ -36,6 +36,8 @@ A comprehensive web-based warehouse management system for schools with multiple 
 - React (Vite)
 - Tailwind CSS
 - React Router
+- Supabase (Backend as a Service)
+- Socket.IO (Real-time communication)
 
 ## Getting Started
 
@@ -67,7 +69,7 @@ A comprehensive web-based warehouse management system for schools with multiple 
    npm run dev
    ```
 
-2. Open your browser and visit `http://localhost:5173`
+2. The default Vite dev server URL is printed in the terminal (typically `http://localhost:5173`).
 
 ### Building for Production
 
@@ -76,6 +78,28 @@ npm run build
 ```
 
 The built files will be in the `dist` directory.
+
+## Deployment
+
+### Vercel Deployment
+
+1. Push your code to a GitHub repository
+2. Connect your repository to Vercel
+3. Set the following environment variables in Vercel:
+   - `VITE_SUPABASE_URL`: Your Supabase project URL
+   - `VITE_SUPABASE_ANON_KEY`: Your Supabase anon key
+
+### Backend Deployment (Optional)
+
+If you maintain a separate Node.js backend (not required for core Supabase usage):
+
+1. Deploy the server to your preferred hosting platform
+2. Set the following environment variables:
+   - `SUPABASE_URL`: Your Supabase project URL
+   - `SUPABASE_SERVICE_ROLE_KEY`: Your Supabase service role key
+   - `PORT`: The port your server should listen on (default: 5001)
+
+3. Provide the backend URL to the frontend via a suitable environment variable (e.g., `VITE_API_BASE_URL`) only if those endpoints are actually used.
 
 ## Login Information
 
@@ -94,7 +118,8 @@ school-warehouse-system/
 ├── src/
 │   ├── components/
 │   ├── pages/
-│   ├── styles/
+│   ├── services/
+│   ├── lib/
 │   ├── App.jsx
 │   └── main.jsx
 ├── index.html

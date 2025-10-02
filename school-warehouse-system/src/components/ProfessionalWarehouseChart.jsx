@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import Chart from 'react-apexcharts';
 import { BarChart } from 'lucide-react';
 import { getAllWarehouses } from '../services/warehouseService';
-import { getItemsByWarehouse } from '../services/itemService';
+import { getItemsByWarehouseService } from '../services/itemService';
 
 const ProfessionalWarehouseChart = () => {
   const [warehouseData, setWarehouseData] = useState([]);
@@ -19,7 +19,7 @@ const ProfessionalWarehouseChart = () => {
         const warehouseStats = [];
         
         for (const warehouse of warehouses) {
-          const items = await getItemsByWarehouse(warehouse.id);
+          const items = await getItemsByWarehouseService(warehouse.id);
           const totalItems = items.reduce((sum, item) => sum + (item.quantity || 0), 0);
           
           warehouseStats.push({

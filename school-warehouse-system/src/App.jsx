@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, useNavigate, NavLink, Navigate } from 'react-router-dom';
 import { useNotification } from './components/NotificationProvider';
-import { authenticateUser, getCurrentUser, logoutUser } from './services/userService';
-import { getAllWarehouses, getWarehouseById } from './services/warehouseService';
-import { getItemsByWarehouse, updateItemQuantity, createTransaction, getTransactions, getLowInventoryItems } from './services/itemService';
+import { authenticateUserService, getCurrentUser, logoutUser } from './services/userService';
+import { getAllWarehousesService, getWarehouseByIdService } from './services/warehouseService';
+import { getItemsByWarehouseService, updateItemQuantityService, createTransactionService, getTransactionsService, getLowInventoryItemsService } from './services/itemService';
 
 import Reports from './components/Reports';
-import { initWebSocket, disconnectWebSocket } from './db';
 import './App.css';
 import { Menu, X, Home, Building, Package, Tag, FileText, LogOut, User, Warehouse } from 'lucide-react';
 
@@ -27,7 +26,7 @@ function App() {
   const [warehouses, setWarehouses] = useState([]);
   const { addNotification } = useNotification();
 
-  // Initialize WebSocket connection and check if user is already logged in
+  // Check if user is already logged in
   useEffect(() => {
     console.log('App component mounted');
     
@@ -37,33 +36,13 @@ function App() {
       setUser(currentUser);
       setIsLoggedIn(true);
     }
-    
-    // Initialize WebSocket connection only once
-    try {
-      initWebSocket((notification) => {
-        addNotification({
-          message: notification.message,
-          details: notification.details,
-          quantity: notification.quantity,
-          type: notification.type
-        });
-      });
-    } catch (error) {
-      console.error('Failed to initialize WebSocket:', error);
-    }
-    
-    // Clean up WebSocket connection on unmount
-    return () => {
-      console.log('App component unmounting');
-      disconnectWebSocket();
-    };
   }, []); // Empty dependency array to run only once
 
   // Load warehouses data
   useEffect(() => {
     const loadWarehouses = async () => {
       try {
-        const data = await getAllWarehouses();
+        const data = await getAllWarehousesService();
         setWarehouses(data);
       } catch (error) {
         console.error('Error loading warehouses:', error);
@@ -89,21 +68,10 @@ function App() {
 
   const handleLogin = async (nationalId, password) => {
     try {
-      const authenticatedUser = await authenticateUser(nationalId, password);
+      const authenticatedUser = await authenticateUserService(nationalId, password);
       if (authenticatedUser && !authenticatedUser.error) {
         setUser(authenticatedUser);
         setIsLoggedIn(true);
-        
-        // Reinitialize WebSocket with new user token
-        disconnectWebSocket();
-        initWebSocket((notification) => {
-          addNotification({
-            message: notification.message,
-            details: notification.details,
-            quantity: notification.quantity,
-            type: notification.type
-          });
-        });
         
         addNotification({
           message: `مرحباً ${authenticatedUser.name}! لقد تم تسجيل الدخول بنجاح.`,
@@ -130,9 +98,6 @@ function App() {
     logoutUser();
     setUser(null);
     setIsLoggedIn(false);
-    
-    // Disconnect WebSocket on logout
-    disconnectWebSocket();
     
     addNotification({
       message: 'لقد تم تسجيل الخروج بنجاح.',
@@ -412,7 +377,7 @@ function EmployeeDashboard({ user }) {
     const loadWarehouse = async () => {
       try {
         if (user.warehouse_id) {
-          const warehouseData = await getWarehouseById(user.warehouse_id);
+          const warehouseData = await getWarehouseByIdService(user.warehouse_id);
           setWarehouse(warehouseData);
         }
         setLoading(false);
@@ -510,7 +475,7 @@ function IssueItemsForm({ addNotification, user, warehouse }) {
     const loadItems = async () => {
       try {
         setLoading(true);
-        const data = await getItemsByWarehouse(warehouse.id);
+        const data = await getItemsByWarehouseService(warehouse.id);
         setItems(data);
         setLoading(false);
       } catch (error) {
@@ -558,10 +523,10 @@ function IssueItemsForm({ addNotification, user, warehouse }) {
         notes: notes
       };
       
-      await createTransaction(transactionData);
+      await createTransactionService(transactionData);
       
       // Update item quantity
-      await updateItemQuantity(selectedItem, -quantity);
+      await updateItemQuantityService(selectedItem, -quantity);
       
       addNotification({
         message: 'تم صرف العنصر بنجاح!',
@@ -668,7 +633,7 @@ function ReturnItemsForm({ addNotification, user, warehouse }) {
     const loadItems = async () => {
       try {
         setLoading(true);
-        const data = await getItemsByWarehouse(warehouse.id);
+        const data = await getItemsByWarehouseService(warehouse.id);
         setItems(data);
         setLoading(false);
       } catch (error) {
@@ -716,10 +681,10 @@ function ReturnItemsForm({ addNotification, user, warehouse }) {
         notes: notes
       };
       
-      await createTransaction(transactionData);
+      await createTransactionService(transactionData);
       
       // Update item quantity
-      await updateItemQuantity(selectedItem, quantity);
+      await updateItemQuantityService(selectedItem, quantity);
       
       addNotification({
         message: 'تم إرجاع العنصر بنجاح!',
@@ -834,7 +799,7 @@ function ExchangeItemsForm({ addNotification, user, warehouse }) {
     const loadItems = async () => {
       try {
         setLoading(true);
-        const data = await getItemsByWarehouse(warehouse.id);
+        const data = await getItemsByWarehouseService(warehouse.id);
         setItems(data);
         setLoading(false);
       } catch (error) {
@@ -882,10 +847,10 @@ function ExchangeItemsForm({ addNotification, user, warehouse }) {
         notes: notes ? `تبديل: ${notes}` : 'تبديل عنصر'
       };
       
-      await createTransaction(outgoingTransactionData);
+      await createTransactionService(outgoingTransactionData);
       
       // Update outgoing item quantity
-      await updateItemQuantity(outgoingItem, -outgoingQuantity);
+      await updateItemQuantityService(outgoingItem, -outgoingQuantity);
       
       // Create incoming transaction record
       const incomingTransactionData = {
@@ -897,10 +862,10 @@ function ExchangeItemsForm({ addNotification, user, warehouse }) {
         notes: notes ? `تبديل: ${notes}` : 'تبديل عنصر'
       };
       
-      await createTransaction(incomingTransactionData);
+      await createTransactionService(incomingTransactionData);
       
       // Update incoming item quantity
-      await updateItemQuantity(incomingItem, incomingQuantity);
+      await updateItemQuantityService(incomingItem, incomingQuantity);
       
       addNotification({
         message: 'تم تبديل العناصر بنجاح!',
@@ -928,7 +893,7 @@ function ExchangeItemsForm({ addNotification, user, warehouse }) {
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-purple-500 mr-2 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
           </svg>
-          <p className="text-purple-700 text-sm">حدد العنصر taxpع والوارد، وكمياتهما، وتفاصيل المستلم.</p>
+          <p className="text-purple-700 text-sm">حدد العنصر الصادر والوارد، وكمياتهما، وتفاصيل المستلم.</p>
         </div>
       </div>
       
@@ -936,7 +901,7 @@ function ExchangeItemsForm({ addNotification, user, warehouse }) {
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="border border-gray-200 rounded-lg p-4">
-            <h3 className="font-medium text-gray-800 mb-3">العنصر taxpع</h3>
+            <h3 className="font-medium text-gray-800 mb-3">العنصر الصادر</h3>
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">العنصر</label>

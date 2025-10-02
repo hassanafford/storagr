@@ -23,9 +23,20 @@ const getEgyptianTime = () => {
 const app = express();
 const server = http.createServer(app);
 
-// Configure CORS to allow multiple origins including dynamic ports
+// Configure CORS to allow multiple origins including Vercel deployment
 const corsOptions = {
-  origin: ["http://localhost:5173", "http://localhost:5174", "http://localhost:5175", "http://localhost:5176", "http://localhost:5177", "http://localhost:5178", "http://localhost:5179", "http://localhost:5180"],
+  origin: [
+    "http://localhost:5173", 
+    "http://localhost:5174", 
+    "http://localhost:5175", 
+    "http://localhost:5176", 
+    "http://localhost:5177", 
+    "http://localhost:5178", 
+    "http://localhost:5179", 
+    "http://localhost:5180",
+    "https://storagr.vercel.app", // Add your Vercel deployment URL
+    "https://*.vercel.app" // Allow all Vercel deployments
+  ],
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true
@@ -33,7 +44,18 @@ const corsOptions = {
 
 const io = socketIo(server, {
   cors: {
-    origin: ["http://localhost:5173", "http://localhost:5174", "http://localhost:5175", "http://localhost:5176", "http://localhost:5177", "http://localhost:5178", "http://localhost:5179", "http://localhost:5180"],
+    origin: [
+      "http://localhost:5173", 
+      "http://localhost:5174", 
+      "http://localhost:5175", 
+      "http://localhost:5176", 
+      "http://localhost:5177", 
+      "http://localhost:5178", 
+      "http://localhost:5179", 
+      "http://localhost:5180",
+      "https://storagr.vercel.app", // Add your Vercel deployment URL
+      "https://*.vercel.app" // Allow all Vercel deployments
+    ],
     methods: ["GET", "POST"]
   }
 });
@@ -223,6 +245,15 @@ io.on('connection', (socket) => {
     if (socket.user && socket.user.id) {
       connectedUsers.delete(socket.user.id);
     }
+  });
+});
+
+// Health check endpoint
+app.get('/', (req, res) => {
+  res.json({ 
+    status: 'OK', 
+    message: 'School Warehouse API is running',
+    timestamp: new Date().toISOString()
   });
 });
 

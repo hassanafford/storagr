@@ -1,8 +1,8 @@
-import { api } from '../db';
+import { createDailyAudit, getDailyAudits } from '../db';
 
-export const createDailyAudit = async (auditData) => {
+export const createDailyAuditService = async (auditData) => {
   try {
-    const data = await api.createDailyAudit(auditData);
+    const data = await createDailyAudit(auditData);
     return data;
   } catch (error) {
     console.error('Error creating daily audit:', error);
@@ -10,9 +10,9 @@ export const createDailyAudit = async (auditData) => {
   }
 };
 
-export const getDailyAudits = async (params = {}) => {
+export const getDailyAuditsService = async (params = {}) => {
   try {
-    const data = await api.getDailyAudits(params);
+    const data = await getDailyAudits(params);
     return data;
   } catch (error) {
     console.error('Error fetching daily audits:', error);
@@ -20,9 +20,9 @@ export const getDailyAudits = async (params = {}) => {
   }
 };
 
-export const getDailyAuditsByWarehouse = async (warehouseId) => {
+export const getDailyAuditsByWarehouseService = async (warehouseId) => {
   try {
-    const data = await api.getDailyAudits({ warehouseId });
+    const data = await getDailyAudits({ warehouseId });
     return data;
   } catch (error) {
     console.error('Error fetching daily audits by warehouse:', error);
@@ -30,9 +30,9 @@ export const getDailyAuditsByWarehouse = async (warehouseId) => {
   }
 };
 
-export const getDailyAuditsByItem = async (itemId) => {
+export const getDailyAuditsByItemService = async (itemId) => {
   try {
-    const data = await api.getDailyAudits({ itemId });
+    const data = await getDailyAudits({ itemId });
     return data;
   } catch (error) {
     console.error('Error fetching daily audits by item:', error);
@@ -41,8 +41,8 @@ export const getDailyAuditsByItem = async (itemId) => {
 };
 
 export default {
-  createDailyAudit,
-  getDailyAudits,
-  getDailyAuditsByWarehouse,
-  getDailyAuditsByItem
+  createDailyAudit: createDailyAuditService,
+  getDailyAudits: getDailyAuditsService,
+  getDailyAuditsByWarehouse: getDailyAuditsByWarehouseService,
+  getDailyAuditsByItem: getDailyAuditsByItemService
 };

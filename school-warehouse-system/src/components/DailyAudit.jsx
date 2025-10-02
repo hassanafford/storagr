@@ -8,8 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { CheckCircle, AlertCircle, Calendar, Package } from 'lucide-react';
 import { useNotification } from './NotificationProvider';
-import { getItemsByWarehouse } from '../services/itemService';
-import { createDailyAudit } from '../services/auditService';
+import { getItemsByWarehouseService } from '../services/itemService';
+import { createDailyAuditService } from '../services/auditService';
 
 const DailyAudit = ({ user, warehouse }) => {
   const { addNotification } = useNotification();
@@ -27,7 +27,7 @@ const DailyAudit = ({ user, warehouse }) => {
     const loadItems = async () => {
       try {
         setLoading(true);
-        const data = await getItemsByWarehouse(warehouse.id);
+        const data = await getItemsByWarehouseService(warehouse.id);
         setItems(data);
         setLoading(false);
       } catch (error) {
@@ -87,7 +87,7 @@ const DailyAudit = ({ user, warehouse }) => {
         notes: notes
       };
 
-      await createDailyAudit(auditData);
+      await createDailyAuditService(auditData);
       
       addNotification({
         message: 'تم تسجيل الجرد اليومي بنجاح',
@@ -101,7 +101,7 @@ const DailyAudit = ({ user, warehouse }) => {
       setNotes('');
       
       // Refresh items
-      const data = await getItemsByWarehouse(warehouse.id);
+      const data = await getItemsByWarehouseService(warehouse.id);
       setItems(data);
     } catch (error) {
       console.error('Error submitting audit:', error);

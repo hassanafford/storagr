@@ -1,80 +1,18 @@
-import { api } from '../db';
-import io from 'socket.io-client';
+import { 
+  getWarehouses, 
+  getAllItems, 
+  getTransactions, 
+  getWarehouseById, 
+  getItemsByWarehouse, 
+  getTransactionsByWarehouse, 
+  getWarehouseStats, 
+  getLowInventoryItems 
+} from '../db';
 
-// Create a service for handling dashboard data with real-time updates
+// Create a service for handling dashboard data
 class DashboardService {
   constructor() {
-    this.socket = null;
-    this.notificationCallback = null;
-    this.isConnected = false;
     this.dataUpdateCallbacks = [];
-  }
-
-  // Initialize WebSocket connection with proper authentication
-  initWebSocket(callback) {
-    this.notificationCallback = callback;
-    
-    // Get token from localStorage
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-    const token = user.token;
-    
-    // Disconnect existing socket if any
-    if (this.socket) {
-      this.socket.disconnect();
-    }
-    
-    // Connect to WebSocket server with authentication
-    const socketOptions = {
-      transports: ['websocket', 'polling'],
-      reconnection: true,
-      reconnectionAttempts: 5,
-      reconnectionDelay: 3000,
-      reconnectionDelayMax: 15000,
-      timeout: 10000,
-      autoConnect: false
-    };
-    
-    // Add authentication token if available
-    if (token) {
-      socketOptions.auth = { token };
-    }
-    
-    this.socket = io('http://localhost:5001', socketOptions);
-    
-    // Add event listeners
-    this.socket.on('connect', () => {
-      console.log('Dashboard WebSocket connected with ID:', this.socket.id);
-      this.isConnected = true;
-    });
-    
-    this.socket.on('notification', (notification) => {
-      console.log('Received dashboard notification:', notification);
-      if (this.notificationCallback) {
-        this.notificationCallback(notification);
-      }
-      
-      // Trigger data update callbacks when notifications are received
-      this.dataUpdateCallbacks.forEach(cb => {
-        if (typeof cb === 'function') {
-          cb(notification);
-        }
-      });
-    });
-    
-    this.socket.on('disconnect', (reason) => {
-      console.log('Dashboard WebSocket disconnected:', reason);
-      this.isConnected = false;
-    });
-    
-    this.socket.on('connect_error', (error) => {
-      console.error('Dashboard WebSocket connection error:', error);
-      this.isConnected = false;
-    });
-    
-    // Manually connect
-    this.socket.connect();
-    
-    return Promise.resolve();
   }
 
   // Register callback for data updates
@@ -90,25 +28,13 @@ class DashboardService {
     }
   }
 
-  // Disconnect WebSocket
-  disconnectWebSocket() {
-    this.isConnected = false;
-    this.notificationCallback = null;
-    this.dataUpdateCallbacks = [];
-    
-    if (this.socket) {
-      this.socket.disconnect();
-      this.socket = null;
-    }
-  }
-
-  // Dashboard data fetching methods with real-time capabilities
+  // Dashboard data fetching methods
   async getAdminDashboardData() {
     try {
       const [warehouses, items, transactions] = await Promise.all([
-        api.getWarehouses(),
-        api.getAllItems(),
-        api.getTransactions()
+        getWarehouses(),
+        getAllItems(),
+        getTransactionsService()
       ]);
       
       return {
@@ -125,9 +51,9 @@ class DashboardService {
   async getEmployeeDashboardData(warehouseId) {
     try {
       const [warehouse, items, transactions] = await Promise.all([
-        api.getWarehouseById(warehouseId),
-        api.getItemsByWarehouse(warehouseId),
-        api.getTransactionsByWarehouse(warehouseId)
+        getWarehouseById(warehouseId),
+        getItemsByWarehouseService(warehouseId),
+        getTransactionsByWarehouseService(warehouseId)
       ]);
       
       return {
@@ -141,9 +67,9 @@ class DashboardService {
     }
   }
 
-  async getWarehouseStats(warehouseId) {
+  async getWarehouseStatsService(warehouseId) {
     try {
-      const stats = await api.getWarehouseStats(warehouseId);
+      const stats = await getWarehouseStats(warehouseId);
       return stats;
     } catch (error) {
       console.error('Error fetching warehouse stats:', error);
@@ -151,9 +77,9 @@ class DashboardService {
     }
   }
 
-  async getLowInventoryItems(threshold = 10) {
+  async getLowInventoryItemsService(threshold = 10) {
     try {
-      const items = await api.getLowInventoryItems(threshold);
+      const items = await getLowInventoryItemsService(threshold);
       return items;
     } catch (error) {
       console.error('Error fetching low inventory items:', error);
@@ -164,9 +90,9 @@ class DashboardService {
   async getRealTimeAnalytics() {
     try {
       const [warehouses, items, transactions] = await Promise.all([
-        api.getWarehouses(),
-        api.getAllItems(),
-        api.getTransactions()
+        getWarehouses(),
+        getAllItems(),
+        getTransactionsService()
       ]);
       
       // Calculate analytics data

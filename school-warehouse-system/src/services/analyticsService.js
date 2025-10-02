@@ -1,5 +1,5 @@
-import { getAllWarehouses, getWarehouseById } from './warehouseService';
-import { getAllItems, getItemsByWarehouse, getTransactions, getTransactionsByWarehouse, getLowInventoryItems } from './itemService';
+import { getAllWarehouses, getWarehouseByIdService } from './warehouseService';
+import { getAllItemsService, getItemsByWarehouseService, getTransactionsService, getTransactionsByWarehouseService, getLowInventoryItemsService } from './itemService';
 
 class AnalyticsService {
   // Get analytics data for admin dashboard
@@ -7,8 +7,8 @@ class AnalyticsService {
     try {
       const [warehouses, items, transactions] = await Promise.all([
         getAllWarehouses(),
-        getAllItems(),
-        getTransactions()
+        getAllItemsService(),
+        getTransactionsService()
       ]);
       
       // Calculate analytics data
@@ -36,9 +36,9 @@ class AnalyticsService {
   async getEmployeeAnalytics(warehouseId) {
     try {
       const [warehouse, items, transactions] = await Promise.all([
-        getWarehouseById(warehouseId),
-        getItemsByWarehouse(warehouseId),
-        getTransactionsByWarehouse(warehouseId)
+        getWarehouseByIdService(warehouseId),
+        getItemsByWarehouseService(warehouseId),
+        getTransactionsByWarehouseService(warehouseId)
       ]);
       
       // Calculate analytics data

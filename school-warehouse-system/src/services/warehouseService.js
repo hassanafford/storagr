@@ -1,8 +1,8 @@
-import { api } from '../db';
+import { getWarehouses, getWarehouseById, getWarehouseItems, getWarehouseStats, createWarehouse, updateWarehouse, deleteWarehouse } from '../db';
 
 export const getAllWarehouses = async () => {
   try {
-    const data = await api.getWarehouses();
+    const data = await getWarehouses();
     return data;
   } catch (error) {
     console.error('Error fetching warehouses:', error);
@@ -10,9 +10,9 @@ export const getAllWarehouses = async () => {
   }
 };
 
-export const getWarehouseById = async (id) => {
+export const getWarehouseByIdService = async (id) => {
   try {
-    const data = await api.getWarehouseById(id);
+    const data = await getWarehouseById(id);
     return data;
   } catch (error) {
     console.error('Error fetching warehouse:', error);
@@ -20,9 +20,9 @@ export const getWarehouseById = async (id) => {
   }
 };
 
-export const getWarehouseItems = async (warehouseId) => {
+export const getWarehouseItemsService = async (warehouseId) => {
   try {
-    const data = await api.getWarehouseItems(warehouseId);
+    const data = await getWarehouseItems(warehouseId);
     return data;
   } catch (error) {
     console.error('Error fetching warehouse items:', error);
@@ -30,9 +30,9 @@ export const getWarehouseItems = async (warehouseId) => {
   }
 };
 
-export const getWarehouseStats = async (warehouseId) => {
+export const getWarehouseStatsService = async (warehouseId) => {
   try {
-    const data = await api.getWarehouseStats(warehouseId);
+    const data = await getWarehouseStats(warehouseId);
     return data;
   } catch (error) {
     console.error('Error fetching warehouse stats:', error);
@@ -40,7 +40,7 @@ export const getWarehouseStats = async (warehouseId) => {
   }
 };
 
-export const createWarehouse = async (warehouseData) => {
+export const createWarehouseService = async (warehouseData) => {
   // Form validation
   if (!warehouseData.name || warehouseData.name.trim() === '') {
     throw new Error('اسم المخزن مطلوب');
@@ -51,7 +51,7 @@ export const createWarehouse = async (warehouseData) => {
   }
   
   try {
-    const data = await api.createWarehouse(warehouseData);
+    const data = await createWarehouse(warehouseData);
     return data;
   } catch (error) {
     console.error('Error creating warehouse:', error);
@@ -59,7 +59,7 @@ export const createWarehouse = async (warehouseData) => {
   }
 };
 
-export const updateWarehouse = async (id, warehouseData) => {
+export const updateWarehouseService = async (id, warehouseData) => {
   // Form validation
   if (!warehouseData.name || warehouseData.name.trim() === '') {
     throw new Error('اسم المخزن مطلوب');
@@ -70,7 +70,7 @@ export const updateWarehouse = async (id, warehouseData) => {
   }
   
   try {
-    const data = await api.updateWarehouse(id, warehouseData);
+    const data = await updateWarehouse(id, warehouseData);
     return data;
   } catch (error) {
     console.error('Error updating warehouse:', error);
@@ -78,9 +78,9 @@ export const updateWarehouse = async (id, warehouseData) => {
   }
 };
 
-export const deleteWarehouse = async (id) => {
+export const deleteWarehouseService = async (id) => {
   try {
-    const data = await api.deleteWarehouse(id);
+    const data = await deleteWarehouse(id);
     return data;
   } catch (error) {
     console.error('Error deleting warehouse:', error);
@@ -88,9 +88,9 @@ export const deleteWarehouse = async (id) => {
   }
 };
 
-export const getWarehouseCategories = async (warehouseId) => {
+export const getWarehouseCategoriesService = async (warehouseId) => {
   try {
-    // This should be implemented in the API if needed
+    // This should be implemented if needed
     // For now, we'll return an empty array
     return [];
   } catch (error) {

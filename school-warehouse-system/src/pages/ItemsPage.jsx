@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNotification } from '../components/NotificationProvider';
-import { getAllItems, createItem, updateItem, deleteItem, searchItems } from '../services/itemService';
+import { getAllItemsService, createItemService, updateItemService, deleteItemService, searchItemsService } from '../services/itemService';
 import { getAllWarehouses } from '../services/warehouseService';
-import { getAllCategories } from '../services/categoryService';
+import { getAllCategoriesService } from '../services/categoryService';
 
 function ItemsPage() {
   const { addNotification } = useNotification();
@@ -31,7 +31,7 @@ function ItemsPage() {
   const loadItems = async () => {
     try {
       setLoading(true);
-      const data = await getAllItems();
+      const data = await getAllItemsService();
       setItems(data);
       setLoading(false);
     } catch (error) {
@@ -46,7 +46,7 @@ function ItemsPage() {
 
   const loadWarehouses = async () => {
     try {
-      const data = await getAllWarehouses();
+      const data = await getAllWarehousesService();
       setWarehouses(data);
     } catch (error) {
       console.error('Error loading warehouses:', error);
@@ -59,7 +59,7 @@ function ItemsPage() {
 
   const loadCategories = async () => {
     try {
-      const data = await getAllCategories();
+      const data = await getAllCategoriesService();
       setCategories(data);
     } catch (error) {
       console.error('Error loading categories:', error);
@@ -77,7 +77,7 @@ function ItemsPage() {
     }
     
     try {
-      const data = await searchItems(searchQuery);
+      const data = await searchItemsService(searchQuery);
       setItems(data);
     } catch (error) {
       console.error('Error searching items:', error);
@@ -139,14 +139,14 @@ function ItemsPage() {
     try {
       if (editingItem) {
         // Update existing item
-        await updateItem(editingItem.id, formData);
+        await updateItemService(editingItem.id, formData);
         addNotification({
           message: 'تم تحديث العنصر بنجاح',
           type: 'success'
         });
       } else {
         // Create new item
-        await createItem(formData);
+        await createItemService(formData);
         addNotification({
           message: 'تم إنشاء العنصر بنجاح',
           type: 'success'
@@ -184,7 +184,7 @@ function ItemsPage() {
   const handleDelete = async (id) => {
     if (window.confirm('هل أنت متأكد من حذف هذا العنصر؟')) {
       try {
-        await deleteItem(id);
+        await deleteItemService(id);
         addNotification({
           message: 'تم حذف العنصر بنجاح',
           type: 'success'

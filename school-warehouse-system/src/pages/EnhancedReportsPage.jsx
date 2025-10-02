@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNotification } from '../components/NotificationProvider';
-import { getTransactions, getTransactionsByDateRange } from '../services/itemService';
+import { getTransactionsService, getTransactionsByDateRangeService } from '../services/itemService';
 import { getAllWarehouses } from '../services/warehouseService';
-import { getLowInventoryItems } from '../services/itemService';
-import { getDailyAudits } from '../services/auditService';
+import { getLowInventoryItemsService } from '../services/itemService';
+import { getDailyAuditsService } from '../services/auditService';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -52,7 +52,7 @@ const EnhancedReportsPage = () => {
   const loadReports = async () => {
     try {
       setLoading(true);
-      const data = await getTransactions();
+      const data = await getTransactionsService();
       setTransactions(data);
       processChartData(data);
       setLoading(false);
@@ -81,7 +81,7 @@ const EnhancedReportsPage = () => {
 
   const loadLowInventoryItems = async () => {
     try {
-      const data = await getLowInventoryItems(10);
+      const data = await getLowInventoryItemsService(10);
       setLowInventoryItems(data);
     } catch (error) {
       console.error('Error loading low inventory items:', error);
@@ -94,7 +94,7 @@ const EnhancedReportsPage = () => {
 
   const loadDailyAudits = async () => {
     try {
-      const data = await getDailyAudits();
+      const data = await getDailyAuditsService();
       setDailyAudits(data);
     } catch (error) {
       console.error('Error loading daily audits:', error);
@@ -168,7 +168,7 @@ const EnhancedReportsPage = () => {
           warehouseId: filter.warehouseId || undefined
         };
         
-        const data = await getTransactionsByDateRange(params);
+        const data = await getTransactionsByDateRangeService(params);
         setTransactions(data);
         processChartData(data);
       } else {

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNotification } from '../components/NotificationProvider';
 import { getAllWarehouses } from '../services/warehouseService';
-import { getItemsByWarehouse, getTransactions, getLowInventoryItems } from '../services/itemService';
+import { getItemsByWarehouseService, getTransactionsService, getLowInventoryItemsService } from '../services/itemService';
 import ProfessionalWarehouseChart from '../components/ProfessionalWarehouseChart';
 import { useNavigate } from 'react-router-dom';
 // Old AdminDashboard import removed to avoid conflicts
@@ -9,7 +9,6 @@ import EnhancedWarehouseCard from '../components/EnhancedWarehouseCard';
 import { FileText, Plus, BarChart3, PieChart, AlertTriangle, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import analyticsService from '../services/analyticsService';
 import DashboardPieChart from '../components/DashboardPieChart';
-import { initWebSocket, disconnectWebSocket } from '../db';
 import AdminTransactionOperations from '../components/AdminTransactionOperations';
 
 function DashboardPage({ user }) {
@@ -30,9 +29,6 @@ function DashboardPage({ user }) {
   const [analyticsData, setAnalyticsData] = useState(null);
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
   const [analyticsError, setAnalyticsError] = useState(null);
-  
-  // WebSocket state
-  const [websocketInitialized, setWebsocketInitialized] = useState(false);
 
   useEffect(() => {
     const loadWarehouses = async () => {
@@ -52,40 +48,6 @@ function DashboardPage({ user }) {
 
     loadWarehouses();
   }, []);
-
-  // Initialize WebSocket for real-time updates
-  useEffect(() => {
-    if (!websocketInitialized) {
-      try {
-        initWebSocket((notification) => {
-          // Handle real-time notifications with detailed context
-          addNotification({
-            message: notification.message,
-            details: notification.details,
-            quantity: notification.quantity,
-            type: notification.type
-          });
-          
-          // Refresh all dashboard data when notifications are received
-          if (warehouses.length > 0) {
-            loadData();
-            loadAnalyticsData();
-          }
-        });
-        setWebsocketInitialized(true);
-      } catch (error) {
-        console.error('Failed to initialize WebSocket:', error);
-      }
-    }
-    
-    // Clean up WebSocket connection on unmount
-    return () => {
-      if (websocketInitialized) {
-        disconnectWebSocket();
-        setWebsocketInitialized(false);
-      }
-    };
-  }, [warehouses]);
 
   // Load analytics data
   const loadAnalyticsData = async () => {
@@ -124,7 +86,7 @@ function DashboardPage({ user }) {
         // Load warehouse stats
         const stats = [];
         for (const warehouse of warehouses) {
-          const items = await getItemsByWarehouse(warehouse.id);
+          const items = await getItemsByWarehouseService(warehouse.id);
           const totalItems = items.reduce((sum, item) => sum + (item.quantity || 0), 0);
           
           // Determine status based on item count
@@ -146,7 +108,7 @@ function DashboardPage({ user }) {
         setWarehouseStats(stats);
         
         // Load recent transactions
-        const transactionsData = await getTransactions();
+        const transactionsData = await getTransactionsService();
         setTransactions(transactionsData);
         
         const activities = transactionsData.slice(0, 5).map(transaction => {
@@ -179,13 +141,13 @@ function DashboardPage({ user }) {
         
         
         // Load low inventory items
-        const lowItems = await getLowInventoryItems(10);
+        const lowItems = await getLowInventoryItemsService(10);
         setLowInventoryItems(lowItems);
         
         // Load all items
         const allItems = [];
         for (const warehouse of warehouses) {
-          const warehouseItems = await getItemsByWarehouse(warehouse.id);
+          const warehouseItems = await getItemsByWarehouseService(warehouse.id);
           allItems.push(...warehouseItems);
         }
         setItems(allItems);
@@ -229,7 +191,7 @@ function DashboardPage({ user }) {
         try {
           const stats = [];
           for (const warehouse of warehouses) {
-            const items = await getItemsByWarehouse(warehouse.id);
+            const items = await getItemsByWarehouseService(warehouse.id);
             const totalItems = items.reduce((sum, item) => sum + (item.quantity || 0), 0);
             
             // Determine status based on item count
@@ -257,7 +219,7 @@ function DashboardPage({ user }) {
       // Reload recent activities
       const reloadRecentActivities = async () => {
         try {
-          const transactions = await getTransactions();
+          const transactions = await getTransactionsService();
           const activities = transactions.slice(0, 5).map(transaction => {
             let type = 'issue';
             let title = 'تم صرف عناصر';
@@ -293,7 +255,7 @@ function DashboardPage({ user }) {
       // Reload low inventory items
       const reloadLowInventoryItems = async () => {
         try {
-          const lowItems = await getLowInventoryItems(10);
+          const lowItems = await getLowInventoryItemsService(10);
           setLowInventoryItems(lowItems);
           
           // Show notification if low inventory items count has changed

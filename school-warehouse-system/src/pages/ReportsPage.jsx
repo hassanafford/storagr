@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNotification } from '../components/NotificationProvider';
-import { getTransactions } from '../services/itemService';
+import { getTransactionsService } from '../services/itemService';
 import { getAllWarehouses } from '../services/warehouseService';
-import { getLowInventoryItems } from '../services/itemService';
+import { getLowInventoryItemsService } from '../services/itemService';
 
 function ReportsPage() {
   const { addNotification } = useNotification();
@@ -25,7 +25,7 @@ function ReportsPage() {
   const loadReports = async () => {
     try {
       setLoading(true);
-      const data = await getTransactions();
+      const data = await getTransactionsService();
       setTransactions(data);
       setLoading(false);
     } catch (error) {
@@ -53,7 +53,7 @@ function ReportsPage() {
 
   const loadLowInventoryItems = async () => {
     try {
-      const data = await getLowInventoryItems(10);
+      const data = await getLowInventoryItemsService(10);
       setLowInventoryItems(data);
     } catch (error) {
       console.error('Error loading low inventory items:', error);

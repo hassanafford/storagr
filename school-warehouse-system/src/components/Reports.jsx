@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { getTransactions } from '../services/itemService';
+import { getTransactionsService } from '../services/itemService';
 import { getAllWarehouses } from '../services/warehouseService';
-import { getAllItems } from '../services/itemService';
+import { getAllItemsService } from '../services/itemService';
 import InventoryAnalytics from './InventoryAnalytics';
 
 const Reports = () => {
@@ -22,9 +22,9 @@ const Reports = () => {
     const loadData = async () => {
       try {
         const [transactionsData, warehousesData, itemsData] = await Promise.all([
-          getTransactions(),
+          getTransactionsService(),
           getAllWarehouses(),
-          getAllItems()
+          getAllItemsService()
         ]);
         
         setTransactions(transactionsData);

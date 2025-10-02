@@ -1,8 +1,8 @@
-import { api } from '../db';
+import { getAllItems, getItemById, getItemsByWarehouse, updateItemQuantity, createTransaction, getTransactions, getTransactionsByWarehouse, getLowInventoryItems, createItem, updateItem, deleteItem } from '../db';
 
-export const getAllItems = async () => {
+export const getAllItemsService = async () => {
   try {
-    const data = await api.getAllItems();
+    const data = await getAllItems();
     return data;
   } catch (error) {
     console.error('Error fetching items:', error);
@@ -10,9 +10,9 @@ export const getAllItems = async () => {
   }
 };
 
-export const getItemById = async (id) => {
+export const getItemByIdService = async (id) => {
   try {
-    const data = await api.getItemById(id);
+    const data = await getItemById(id);
     return data;
   } catch (error) {
     console.error('Error fetching item:', error);
@@ -20,9 +20,9 @@ export const getItemById = async (id) => {
   }
 };
 
-export const getItemsByWarehouse = async (warehouseId) => {
+export const getItemsByWarehouseService = async (warehouseId) => {
   try {
-    const data = await api.getItemsByWarehouse(warehouseId);
+    const data = await getItemsByWarehouse(warehouseId);
     return data;
   } catch (error) {
     console.error('Error fetching items by warehouse:', error);
@@ -30,9 +30,9 @@ export const getItemsByWarehouse = async (warehouseId) => {
   }
 };
 
-export const updateItemQuantity = async (itemId, quantityChange) => {
+export const updateItemQuantityService = async (itemId, quantityChange) => {
   try {
-    const data = await api.updateItemQuantity(itemId, quantityChange);
+    const data = await updateItemQuantity(itemId, quantityChange);
     return data;
   } catch (error) {
     console.error('Error updating item quantity:', error);
@@ -40,9 +40,9 @@ export const updateItemQuantity = async (itemId, quantityChange) => {
   }
 };
 
-export const createTransaction = async (transactionData) => {
+export const createTransactionService = async (transactionData) => {
   try {
-    const data = await api.createTransaction(transactionData);
+    const data = await createTransaction(transactionData);
     return data;
   } catch (error) {
     console.error('Error creating transaction:', error);
@@ -50,9 +50,9 @@ export const createTransaction = async (transactionData) => {
   }
 };
 
-export const getTransactions = async () => {
+export const getTransactionsService = async () => {
   try {
-    const data = await api.getTransactions();
+    const data = await getTransactions();
     return data;
   } catch (error) {
     console.error('Error fetching transactions:', error);
@@ -60,9 +60,9 @@ export const getTransactions = async () => {
   }
 };
 
-export const getTransactionsByWarehouse = async (warehouseId) => {
+export const getTransactionsByWarehouseService = async (warehouseId) => {
   try {
-    const data = await api.getTransactionsByWarehouse(warehouseId);
+    const data = await getTransactionsByWarehouse(warehouseId);
     return data;
   } catch (error) {
     console.error('Error fetching transactions by warehouse:', error);
@@ -70,9 +70,9 @@ export const getTransactionsByWarehouse = async (warehouseId) => {
   }
 };
 
-export const getLowInventoryItems = async (threshold = 10) => {
+export const getLowInventoryItemsService = async (threshold = 10) => {
   try {
-    const data = await api.getLowInventoryItems(threshold);
+    const data = await getLowInventoryItems(threshold);
     return data;
   } catch (error) {
     console.error('Error fetching low inventory items:', error);
@@ -80,7 +80,7 @@ export const getLowInventoryItems = async (threshold = 10) => {
   }
 };
 
-export const createItem = async (itemData) => {
+export const createItemService = async (itemData) => {
   // Form validation
   if (!itemData.name || itemData.name.trim() === '') {
     throw new Error('اسم العنصر مطلوب');
@@ -103,7 +103,7 @@ export const createItem = async (itemData) => {
   }
   
   try {
-    const data = await api.createItem(itemData);
+    const data = await createItem(itemData);
     return data;
   } catch (error) {
     console.error('Error creating item:', error);
@@ -111,7 +111,7 @@ export const createItem = async (itemData) => {
   }
 };
 
-export const updateItem = async (id, itemData) => {
+export const updateItemService = async (id, itemData) => {
   // Form validation
   if (!itemData.name || itemData.name.trim() === '') {
     throw new Error('اسم العنصر مطلوب');
@@ -134,7 +134,7 @@ export const updateItem = async (id, itemData) => {
   }
   
   try {
-    const data = await api.updateItem(id, itemData);
+    const data = await updateItem(id, itemData);
     return data;
   } catch (error) {
     console.error('Error updating item:', error);
@@ -142,9 +142,9 @@ export const updateItem = async (id, itemData) => {
   }
 };
 
-export const deleteItem = async (id) => {
+export const deleteItemService = async (id) => {
   try {
-    const data = await api.deleteItem(id);
+    const data = await deleteItem(id);
     return data;
   } catch (error) {
     console.error('Error deleting item:', error);
@@ -152,10 +152,10 @@ export const deleteItem = async (id) => {
   }
 };
 
-export const getItemHistory = async (id) => {
+export const getItemHistoryService = async (id) => {
   try {
-    // We need to add this method to the API
-    const data = await api.getItemById(id);
+    // We need to implement this properly
+    const data = await getItemById(id);
     return data;
   } catch (error) {
     console.error('Error fetching item history:', error);
@@ -163,10 +163,10 @@ export const getItemHistory = async (id) => {
   }
 };
 
-export const searchItems = async (query) => {
+export const searchItemsService = async (query) => {
   try {
-    // We need to add this method to the API
-    const data = await api.getAllItems();
+    // We need to implement this properly
+    const data = await getAllItems();
     // Filter items based on query
     return data.filter(item => 
       item.name.includes(query) || 

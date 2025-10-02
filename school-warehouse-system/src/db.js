@@ -1,4 +1,3 @@
-import io from 'socket.io-client';
 import { createClient } from '@supabase/supabase-js';
 
 // Supabase configuration - Fixed for Vite environment variables
@@ -8,424 +7,794 @@ const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || 'your-anon-k
 // Create Supabase client
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// Remove the direct database connection and use API calls instead
-const API_BASE_URL = 'http://localhost:5001/api';
-
-// Create WebSocket connection - SINGLETON PATTERN with state tracking
-let socket = null;
-let notificationCallback = null;
-let isConnected = false;
-let isConnecting = false;
-
 // Get token from localStorage
 const getToken = () => {
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   return user.token;
 };
 
-export const initWebSocket = (callback) => {
-  console.log('initWebSocket called', { isConnected, isConnecting });
+// Authentication function using Supabase
+export const authenticateUser = async (nationalId, password) => {
+  console.log('Login attempt:', { nationalId, password });
   
-  // Always disconnect existing socket to prevent duplicates
-  if (socket) {
-    console.log('Disconnecting existing WebSocket connection');
-    socket.disconnect();
-    socket = null;
-    isConnected = false;
-    isConnecting = false;
+  if (!nationalId || !password) {
+    throw new Error('National ID and password are required');
   }
   
-  notificationCallback = callback;
-  isConnecting = true;
-  
-  // Get token for authentication
-  const token = getToken();
-  console.log('Token for WebSocket connection:', token ? 'Present' : 'Missing');
-  
-  // Connect to WebSocket server with authentication
-  const socketOptions = {
-    transports: ['websocket', 'polling'],
-    reconnection: true,
-    reconnectionAttempts: 5,
-    reconnectionDelay: 3000,
-    reconnectionDelayMax: 15000,
-    randomizationFactor: 0.5,
-    timeout: 10000,
-    autoConnect: false
-  };
-  
-  // Add authentication token if available
-  if (token) {
-    socketOptions.auth = { token };
+  // Validate that national ID is numeric
+  if (!/^[0-9]+$/.test(nationalId)) {
+    throw new Error('Invalid national ID format');
   }
   
-  socket = io('http://localhost:5001', socketOptions);
+  // Extract last 6 digits of national ID as expected password
+  const expectedPassword = nationalId.slice(-6);
   
-  // Add event listeners
-  socket.on('connect', () => {
-    console.log('WebSocket connected with ID:', socket.id);
-    isConnected = true;
-    isConnecting = false;
-  });
+  console.log('Expected password:', expectedPassword);
+  console.log('Provided password:', password);
   
-  socket.on('notification', (notification) => {
-    console.log('Received notification:', notification);
-    if (notificationCallback) {
-      notificationCallback(notification);
-    }
-  });
-  
-  socket.on('disconnect', (reason) => {
-    console.log('WebSocket disconnected:', reason);
-    isConnected = false;
-    isConnecting = false;
-  });
-  
-  socket.on('connect_error', (error) => {
-    console.error('WebSocket connection error:', error);
-    isConnected = false;
-    isConnecting = false;
-  });
-  
-  // Manually connect
-  socket.connect();
-  
-  return Promise.resolve();
-};
-
-// Function to disconnect WebSocket
-export const disconnectWebSocket = () => {
-  console.log('disconnectWebSocket called');
-  isConnected = false;
-  isConnecting = false;
-  notificationCallback = null;
-  
-  if (socket) {
-    socket.disconnect();
-    socket = null;
-  }
-};
-
-// Add UTF-8 encoding header to all requests
-const authenticatedFetch = (url, options = {}) => {
-  const token = getToken();
-  
-  console.log('Making authenticated request to:', url);
-  console.log('Token available:', !!token);
-  
-  const headers = {
-    'Content-Type': 'application/json; charset=utf-8',
-    'Accept': 'application/json; charset=utf-8',
-    ...options.headers
-  };
-  
-  if (token) {
-    headers.Authorization = `Bearer ${token}`;
-    console.log('Authorization header set');
-  } else {
-    console.log('No token available for authorization');
+  // Check if provided password matches expected password
+  if (password !== expectedPassword) {
+    throw new Error('Invalid credentials');
   }
   
-  console.log('Request headers:', headers);
-  
-  return fetch(url, {
-    ...options,
-    headers
-  });
-};
-
-export const api = {
-  // Authentication endpoint
-  authenticateUser: (nationalId, password) => {
-    return fetch(`${API_BASE_URL}/auth/login`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ nationalId, password }),
-    }).then(res => {
-      if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`);
-      }
-      return res.json();
-    });
-  },
-  
-  // Warehouse endpoints
-  getWarehouses: () => authenticatedFetch(`${API_BASE_URL}/warehouses`).then(res => {
-    if (!res.ok) {
-      throw new Error(`HTTP error! status: ${res.status}`);
+  try {
+    // Query users table in Supabase
+    const { data, error } = await supabase
+      .from('users')
+      .select(`
+        *,
+        warehouses (name)
+      `)
+      .eq('national_id', nationalId)
+      .single();
+    
+    if (error) {
+      console.error('Error authenticating user:', error);
+      throw new Error('Authentication failed');
     }
-    return res.json();
-  }),
-  getWarehouseById: (id) => authenticatedFetch(`${API_BASE_URL}/warehouses/${id}`).then(res => {
-    if (!res.ok) {
-      throw new Error(`HTTP error! status: ${res.status}`);
-    }
-    return res.json();
-  }),
-  getWarehouseItems: (id) => authenticatedFetch(`${API_BASE_URL}/warehouses/${id}/items`).then(res => {
-    if (!res.ok) {
-      throw new Error(`HTTP error! status: ${res.status}`);
-    }
-    return res.json();
-  }),
-  getWarehouseStats: (id) => authenticatedFetch(`${API_BASE_URL}/warehouses/${id}/stats`).then(res => {
-    if (!res.ok) {
-      throw new Error(`HTTP error! status: ${res.status}`);
-    }
-    return res.json();
-  }),
-  
-  // User endpoints
-  getUserByNationalId: (nationalId) => authenticatedFetch(`${API_BASE_URL}/users/${nationalId}`).then(res => {
-    if (!res.ok) {
-      throw new Error(`HTTP error! status: ${res.status}`);
-    }
-    return res.json();
-  }),
-  getAllUsers: () => authenticatedFetch(`${API_BASE_URL}/users`).then(res => {
-    if (!res.ok) {
-      throw new Error(`HTTP error! status: ${res.status}`);
-    }
-    return res.json();
-  }),
-  createUser: (userData) => {
-    return authenticatedFetch(`${API_BASE_URL}/users`, {
-      method: 'POST',
-      body: JSON.stringify(userData),
-    }).then(res => {
-      if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`);
-      }
-      return res.json();
-    });
-  },
-  updateUser: (id, userData) => {
-    return authenticatedFetch(`${API_BASE_URL}/users/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(userData),
-    }).then(res => {
-      if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`);
-      }
-      return res.json();
-    });
-  },
-  deleteUser: (id) => {
-    return authenticatedFetch(`${API_BASE_URL}/users/${id}`, {
-      method: 'DELETE',
-    }).then(res => {
-      if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`);
-      }
-      return res.json();
-    });
-  },
-  
-  // Item endpoints
-  getItemById: (id) => authenticatedFetch(`${API_BASE_URL}/items/${id}`).then(res => {
-    if (!res.ok) {
-      throw new Error(`HTTP error! status: ${res.status}`);
-    }
-    return res.json();
-  }),
-  getItemsByWarehouse: (warehouseId) => authenticatedFetch(`${API_BASE_URL}/items/warehouse/${warehouseId}`).then(res => {
-    if (!res.ok) {
-      throw new Error(`HTTP error! status: ${res.status}`);
-    }
-    return res.json();
-  }),
-  updateItemQuantity: (itemId, quantityChange) => {
-    return authenticatedFetch(`${API_BASE_URL}/items/${itemId}/quantity`, {
-      method: 'PUT',
-      body: JSON.stringify({ quantityChange }),
-    }).then(res => {
-      if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`);
-      }
-      return res.json();
-    });
-  },
-  getAllItems: () => authenticatedFetch(`${API_BASE_URL}/items`).then(res => {
-    if (!res.ok) {
-      throw new Error(`HTTP error! status: ${res.status}`);
-    }
-    return res.json();
-  }),
-  
-  // Transaction endpoints
-  createTransaction: (transactionData) => {
-    return authenticatedFetch(`${API_BASE_URL}/transactions`, {
-      method: 'POST',
-      body: JSON.stringify(transactionData),
-    }).then(res => {
-      if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`);
-      }
-      return res.json();
-    });
-  },
-  
-  // Daily audit endpoints
-  createDailyAudit: (auditData) => {
-    return authenticatedFetch(`${API_BASE_URL}/daily-audits`, {
-      method: 'POST',
-      body: JSON.stringify(auditData),
-    }).then(res => {
-      if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`);
-      }
-      return res.json();
-    });
-  },
-  getDailyAudits: (params = {}) => {
-    const queryString = new URLSearchParams(params).toString();
-    const url = queryString 
-      ? `${API_BASE_URL}/daily-audits?${queryString}`
-      : `${API_BASE_URL}/daily-audits`;
+    
+    if (!data) {
+      // User not found - return error instead of creating new user
+      throw new Error('User not registered');
+    } else {
+      const user = data;
       
-    return authenticatedFetch(url).then(res => {
-      if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`);
-      }
-      return res.json();
-    });
-  },
-  getTransactions: () => authenticatedFetch(`${API_BASE_URL}/transactions`).then(res => {
-    if (!res.ok) {
-      throw new Error(`HTTP error! status: ${res.status}`);
+      // Create a token (in a real app, you would use JWT)
+      const token = Buffer.from(JSON.stringify({
+        id: user.id,
+        national_id: user.national_id,
+        name: user.name,
+        role: user.role,
+        warehouse_id: user.warehouse_id
+      })).toString('base64');
+      
+      return {
+        token,
+        user: {
+          id: user.id,
+          national_id: user.national_id,
+          name: user.name,
+          role: user.role,
+          warehouse_id: user.warehouse_id
+        }
+      };
     }
-    return res.json();
-  }),
-  getTransactionsByWarehouse: (warehouseId) => authenticatedFetch(`${API_BASE_URL}/transactions/warehouse/${warehouseId}`).then(res => {
-    if (!res.ok) {
-      throw new Error(`HTTP error! status: ${res.status}`);
-    }
-    return res.json();
-  }),
-  
-  // Low inventory endpoint
-  getLowInventoryItems: (threshold = 10) => authenticatedFetch(`${API_BASE_URL}/items/low-inventory?threshold=${threshold}`).then(res => {
-    if (!res.ok) {
-      throw new Error(`HTTP error! status: ${res.status}`);
-    }
-    return res.json();
-  }),
-  
-  // Warehouse CRUD endpoints
-  createWarehouse: (warehouseData) => {
-    return authenticatedFetch(`${API_BASE_URL}/warehouses`, {
-      method: 'POST',
-      body: JSON.stringify(warehouseData),
-    }).then(res => {
-      if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`);
-      }
-      return res.json();
-    });
-  },
-  updateWarehouse: (id, warehouseData) => {
-    return authenticatedFetch(`${API_BASE_URL}/warehouses/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(warehouseData),
-    }).then(res => {
-      if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`);
-      }
-      return res.json();
-    });
-  },
-  deleteWarehouse: (id) => {
-    return authenticatedFetch(`${API_BASE_URL}/warehouses/${id}`, {
-      method: 'DELETE',
-    }).then(res => {
-      if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`);
-      }
-      return res.json();
-    });
-  },
-  
-  // Category CRUD endpoints
-  getCategories: () => authenticatedFetch(`${API_BASE_URL}/categories`).then(res => {
-    if (!res.ok) {
-      throw new Error(`HTTP error! status: ${res.status}`);
-    }
-    return res.json();
-  }),
-  getCategoryById: (id) => authenticatedFetch(`${API_BASE_URL}/categories/${id}`).then(res => {
-    if (!res.ok) {
-      throw new Error(`HTTP error! status: ${res.status}`);
-    }
-    return res.json();
-  }),
-  createCategory: (categoryData) => {
-    return authenticatedFetch(`${API_BASE_URL}/categories`, {
-      method: 'POST',
-      body: JSON.stringify(categoryData),
-    }).then(res => {
-      if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`);
-      }
-      return res.json();
-    });
-  },
-  updateCategory: (id, categoryData) => {
-    return authenticatedFetch(`${API_BASE_URL}/categories/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(categoryData),
-    }).then(res => {
-      if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`);
-      }
-      return res.json();
-    });
-  },
-  deleteCategory: (id) => {
-    return authenticatedFetch(`${API_BASE_URL}/categories/${id}`, {
-      method: 'DELETE',
-    }).then(res => {
-      if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`);
-      }
-      return res.json();
-    });
-  },
-  
-  // Item CRUD endpoints
-  createItem: (itemData) => {
-    return authenticatedFetch(`${API_BASE_URL}/items`, {
-      method: 'POST',
-      body: JSON.stringify(itemData),
-    }).then(res => {
-      if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`);
-      }
-      return res.json();
-    });
-  },
-  updateItem: (id, itemData) => {
-    return authenticatedFetch(`${API_BASE_URL}/items/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(itemData),
-    }).then(res => {
-      if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`);
-      }
-      return res.json();
-    });
-  },
-  deleteItem: (id) => {
-    return authenticatedFetch(`${API_BASE_URL}/items/${id}`, {
-      method: 'DELETE',
-    }).then(res => {
-      if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`);
-      }
-      return res.json();
-    });
-  },
+  } catch (err) {
+    console.error('Error authenticating user:', err);
+    throw new Error('Authentication failed');
+  }
 };
 
-export default api;
+// Warehouse functions
+export const getWarehouses = async () => {
+  const { data, error } = await supabase
+    .from('warehouses')
+    .select('*');
+  
+  if (error) {
+    console.error('Error fetching warehouses:', error);
+    throw new Error('Failed to fetch warehouses');
+  }
+  
+  return data;
+};
+
+export const getWarehouseById = async (id) => {
+  const { data, error } = await supabase
+    .from('warehouses')
+    .select('*')
+    .eq('id', id)
+    .single();
+  
+  if (error) {
+    console.error('Error fetching warehouse:', error);
+    throw new Error('Failed to fetch warehouse');
+  }
+  
+  if (!data) {
+    throw new Error('Warehouse not found');
+  }
+  
+  return data;
+};
+
+export const getWarehouseItems = async (id) => {
+  const { data, error } = await supabase
+    .from('items')
+    .select(`
+      *,
+      categories:name,
+      warehouses:name
+    `)
+    .eq('warehouse_id', id);
+  
+  if (error) {
+    console.error('Error fetching warehouse items:', error);
+    throw new Error('Failed to fetch warehouse items');
+  }
+  
+  return data;
+};
+
+export const getWarehouseStats = async (id) => {
+  // Get total items count and quantity
+  const { data: itemsData, error: itemsError } = await supabase
+    .from('items')
+    .select('quantity')
+    .eq('warehouse_id', id);
+  
+  if (itemsError) {
+    console.error('Error fetching warehouse stats:', itemsError);
+    throw new Error('Failed to fetch warehouse stats');
+  }
+  
+  const total_items = itemsData.length;
+  const total_quantity = itemsData.reduce((sum, item) => sum + item.quantity, 0);
+  
+  // Get category distribution
+  const { data: categoryData, error: categoryError } = await supabase
+    .from('items')
+    .select(`
+      category_id,
+      quantity,
+      categories (name)
+    `)
+    .eq('warehouse_id', id);
+  
+  if (categoryError) {
+    console.error('Error fetching category distribution:', categoryError);
+    throw new Error('Failed to fetch category distribution');
+  }
+  
+  // Group by category
+  const category_distribution = {};
+  categoryData.forEach(item => {
+    const categoryName = item.categories?.name || 'Uncategorized';
+    if (!category_distribution[categoryName]) {
+      category_distribution[categoryName] = {
+        category_name: categoryName,
+        item_count: 0,
+        total_quantity: 0
+      };
+    }
+    category_distribution[categoryName].item_count += 1;
+    category_distribution[categoryName].total_quantity += item.quantity;
+  });
+  
+  return {
+    total_items,
+    total_quantity,
+    category_distribution: Object.values(category_distribution)
+  };
+};
+
+// User functions
+export const getUserByNationalId = async (nationalId) => {
+  const { data, error } = await supabase
+    .from('users')
+    .select('*')
+    .eq('national_id', nationalId)
+    .single();
+  
+  if (error) {
+    console.error('Error fetching user:', error);
+    throw new Error('Failed to fetch user');
+  }
+  
+  if (!data) {
+    throw new Error('User not found');
+  }
+  
+  return data;
+};
+
+export const getAllUsers = async () => {
+  console.log('Users endpoint called');
+  
+  const { data, error } = await supabase
+    .from('users')
+    .select(`
+      *,
+      warehouses (name)
+    `);
+  
+  if (error) {
+    console.error('Error fetching users:', error);
+    throw new Error('Failed to fetch users');
+  }
+  
+  return data;
+};
+
+export const createUser = async (userData) => {
+  const { data, error } = await supabase
+    .from('users')
+    .insert({
+      national_id: userData.national_id,
+      name: userData.name,
+      role: userData.role,
+      warehouse_id: userData.warehouse_id
+    })
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('Error creating user:', error);
+    throw new Error('Failed to create user');
+  }
+  
+  return {
+    ...data,
+    message: 'User created successfully'
+  };
+};
+
+export const updateUser = async (id, userData) => {
+  const { data, error } = await supabase
+    .from('users')
+    .update({
+      national_id: userData.national_id,
+      name: userData.name,
+      role: userData.role,
+      warehouse_id: userData.warehouse_id
+    })
+    .eq('id', id)
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('Error updating user:', error);
+    throw new Error('Failed to update user');
+  }
+  
+  if (!data) {
+    throw new Error('User not found');
+  }
+  
+  return { message: 'User updated successfully' };
+};
+
+export const deleteUser = async (id) => {
+  const { data, error } = await supabase
+    .from('users')
+    .delete()
+    .eq('id', id);
+  
+  if (error) {
+    console.error('Error deleting user:', error);
+    throw new Error('Failed to delete user');
+  }
+  
+  if (data.length === 0) {
+    throw new Error('User not found');
+  }
+  
+  return { message: 'User deleted successfully' };
+};
+
+// Item functions
+export const getItemById = async (id) => {
+  const { data, error } = await supabase
+    .from('items')
+    .select(`
+      *,
+      categories:name,
+      warehouses:name
+    `)
+    .eq('id', id)
+    .single();
+  
+  if (error) {
+    console.error('Error fetching item:', error);
+    throw new Error('Failed to fetch item');
+  }
+  
+  if (!data) {
+    throw new Error('Item not found');
+  }
+  
+  return data;
+};
+
+export const getItemsByWarehouse = async (warehouseId) => {
+  const { data, error } = await supabase
+    .from('items')
+    .select(`
+      *,
+      categories:name,
+      warehouses:name
+    `)
+    .eq('warehouse_id', warehouseId);
+  
+  if (error) {
+    console.error('Error fetching items:', error);
+    throw new Error('Failed to fetch items');
+  }
+  
+  return data;
+};
+
+export const updateItemQuantity = async (itemId, quantityChange) => {
+  // First, get the item to check current quantity
+  const { data: itemData, error: itemError } = await supabase
+    .from('items')
+    .select('quantity')
+    .eq('id', itemId)
+    .single();
+  
+  if (itemError) {
+    console.error('Error fetching item:', itemError);
+    throw new Error('Failed to fetch item');
+  }
+  
+  if (!itemData) {
+    throw new Error('Item not found');
+  }
+  
+  // Update the item quantity
+  const { data, error } = await supabase
+    .from('items')
+    .update({
+      quantity: Math.max(0, itemData.quantity + quantityChange)
+    })
+    .eq('id', itemId)
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('Error updating item quantity:', error);
+    throw new Error('Failed to update item quantity');
+  }
+  
+  if (!data) {
+    throw new Error('Item not found');
+  }
+  
+  return { message: 'Item quantity updated successfully' };
+};
+
+export const getAllItems = async () => {
+  const { data, error } = await supabase
+    .from('items')
+    .select(`
+      *,
+      categories:name,
+      warehouses:name
+    `)
+    .order('name');
+  
+  if (error) {
+    console.error('Error fetching items:', error);
+    throw new Error('Failed to fetch items');
+  }
+  
+  return data;
+};
+
+// Transaction functions
+export const createTransaction = async (transactionData) => {
+  // Get Egyptian timestamp
+  const getEgyptianTime = () => {
+    const now = new Date();
+    // Egypt is UTC+2
+    const egyptTime = new Date(now.getTime() + (2 * 60 * 60 * 1000));
+    return egyptTime.toISOString().slice(0, 19).replace('T', ' ');
+  };
+  
+  const egyptianTimestamp = getEgyptianTime();
+  
+  // Calculate discrepancy if both expected and actual quantities are provided
+  let discrepancy = null;
+  if (transactionData.expected_quantity !== undefined && transactionData.actual_quantity !== undefined) {
+    discrepancy = transactionData.actual_quantity - transactionData.expected_quantity;
+  }
+  
+  const { data, error } = await supabase
+    .from('transactions')
+    .insert({
+      item_id: transactionData.item_id,
+      user_id: transactionData.user_id,
+      transaction_type: transactionData.transaction_type,
+      quantity: transactionData.quantity,
+      recipient: transactionData.recipient,
+      notes: transactionData.notes,
+      expected_quantity: transactionData.expected_quantity,
+      actual_quantity: transactionData.actual_quantity,
+      discrepancy: discrepancy,
+      egyptian_timestamp: egyptianTimestamp
+    })
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('Error creating transaction:', error);
+    throw new Error('Failed to create transaction');
+  }
+  
+  return {
+    ...data,
+    message: 'Transaction created successfully'
+  };
+};
+
+// Daily audit functions
+export const createDailyAudit = async (auditData) => {
+  // Get audit date (today)
+  const auditDate = new Date().toISOString().split('T')[0];
+  
+  // Get Egyptian timestamp
+  const getEgyptianTime = () => {
+    const now = new Date();
+    // Egypt is UTC+2
+    const egyptTime = new Date(now.getTime() + (2 * 60 * 60 * 1000));
+    return egyptTime.toISOString().slice(0, 19).replace('T', ' ');
+  };
+  
+  const egyptianTimestamp = getEgyptianTime();
+  
+  // Calculate discrepancy
+  const discrepancy = auditData.actual_quantity - auditData.expected_quantity;
+  
+  const { data, error } = await supabase
+    .from('daily_audits')
+    .insert({
+      warehouse_id: auditData.warehouse_id,
+      item_id: auditData.item_id,
+      user_id: auditData.user_id,
+      expected_quantity: auditData.expected_quantity,
+      actual_quantity: auditData.actual_quantity,
+      discrepancy: discrepancy,
+      notes: auditData.notes,
+      audit_date: auditDate,
+      egyptian_timestamp: egyptianTimestamp
+    })
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('Error creating daily audit:', error);
+    throw new Error('Failed to create daily audit');
+  }
+  
+  return {
+    ...data,
+    message: 'Daily audit created successfully'
+  };
+};
+
+export const getDailyAudits = async (params = {}) => {
+  let query = supabase
+    .from('daily_audits')
+    .select(`
+      *,
+      items (name),
+      warehouses (name),
+      users (name)
+    `)
+    .order('created_at', { ascending: false });
+  
+  if (params.warehouseId) {
+    query = query.eq('warehouse_id', params.warehouseId);
+  }
+  
+  if (params.itemId) {
+    query = query.eq('item_id', params.itemId);
+  }
+  
+  const { data, error } = await query;
+  
+  if (error) {
+    console.error('Error fetching daily audits:', error);
+    throw new Error('Failed to fetch daily audits');
+  }
+  
+  return data;
+};
+
+export const getTransactions = async () => {
+  const { data, error } = await supabase
+    .from('transactions')
+    .select(`
+      *,
+      items (name),
+      users (name),
+      warehouses (name)
+    `)
+    .order('created_at', { ascending: false });
+  
+  if (error) {
+    console.error('Error fetching transactions:', error);
+    throw new Error('Failed to fetch transactions');
+  }
+  
+  return data;
+};
+
+export const getTransactionsByWarehouse = async (warehouseId) => {
+  const { data, error } = await supabase
+    .from('transactions')
+    .select(`
+      *,
+      items (name),
+      users (name)
+    `)
+    .eq('warehouse_id', warehouseId)
+    .order('created_at', { ascending: false });
+  
+  if (error) {
+    console.error('Error fetching transactions:', error);
+    throw new Error('Failed to fetch transactions');
+  }
+  
+  return data;
+};
+
+// Low inventory function
+export const getLowInventoryItems = async (threshold = 10) => {
+  const { data, error } = await supabase
+    .from('items')
+    .select(`
+      *,
+      categories:name,
+      warehouses:name
+    `)
+    .lte('quantity', threshold)
+    .order('quantity', { ascending: true });
+  
+  if (error) {
+    console.error('Error fetching low inventory items:', error);
+    throw new Error('Failed to fetch low inventory items');
+  }
+  
+  return data;
+};
+
+// Warehouse CRUD functions
+export const createWarehouse = async (warehouseData) => {
+  const { data, error } = await supabase
+    .from('warehouses')
+    .insert({
+      name: warehouseData.name,
+      description: warehouseData.description
+    })
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('Error creating warehouse:', error);
+    throw new Error('Failed to create warehouse');
+  }
+  
+  return {
+    ...data,
+    message: 'Warehouse created successfully'
+  };
+};
+
+export const updateWarehouse = async (id, warehouseData) => {
+  const { data, error } = await supabase
+    .from('warehouses')
+    .update({
+      name: warehouseData.name,
+      description: warehouseData.description
+    })
+    .eq('id', id)
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('Error updating warehouse:', error);
+    throw new Error('Failed to update warehouse');
+  }
+  
+  if (!data) {
+    throw new Error('Warehouse not found');
+  }
+  
+  return { message: 'Warehouse updated successfully' };
+};
+
+export const deleteWarehouse = async (id) => {
+  const { data, error } = await supabase
+    .from('warehouses')
+    .delete()
+    .eq('id', id);
+  
+  if (error) {
+    console.error('Error deleting warehouse:', error);
+    throw new Error('Failed to delete warehouse');
+  }
+  
+  if (data.length === 0) {
+    throw new Error('Warehouse not found');
+  }
+  
+  return { message: 'Warehouse deleted successfully' };
+};
+
+// Category CRUD functions
+export const getCategories = async () => {
+  const { data, error } = await supabase
+    .from('categories')
+    .select(`
+      *,
+      warehouses (name)
+    `);
+  
+  if (error) {
+    console.error('Error fetching categories:', error);
+    throw new Error('Failed to fetch categories');
+  }
+  
+  return data;
+};
+
+export const getCategoryById = async (id) => {
+  const { data, error } = await supabase
+    .from('categories')
+    .select('*')
+    .eq('id', id)
+    .single();
+  
+  if (error) {
+    console.error('Error fetching category:', error);
+    throw new Error('Failed to fetch category');
+  }
+  
+  if (!data) {
+    throw new Error('Category not found');
+  }
+  
+  return data;
+};
+
+export const createCategory = async (categoryData) => {
+  const { data, error } = await supabase
+    .from('categories')
+    .insert({
+      name: categoryData.name,
+      warehouse_id: categoryData.warehouse_id
+    })
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('Error creating category:', error);
+    throw new Error('Failed to create category');
+  }
+  
+  return {
+    ...data,
+    message: 'Category created successfully'
+  };
+};
+
+export const updateCategory = async (id, categoryData) => {
+  const { data, error } = await supabase
+    .from('categories')
+    .update({
+      name: categoryData.name,
+      warehouse_id: categoryData.warehouse_id
+    })
+    .eq('id', id)
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('Error updating category:', error);
+    throw new Error('Failed to update category');
+  }
+  
+  if (!data) {
+    throw new Error('Category not found');
+  }
+  
+  return { message: 'Category updated successfully' };
+};
+
+export const deleteCategory = async (id) => {
+  const { data, error } = await supabase
+    .from('categories')
+    .delete()
+    .eq('id', id);
+  
+  if (error) {
+    console.error('Error deleting category:', error);
+    throw new Error('Failed to delete category');
+  }
+  
+  if (data.length === 0) {
+    throw new Error('Category not found');
+  }
+  
+  return { message: 'Category deleted successfully' };
+};
+
+// Item CRUD functions
+export const createItem = async (itemData) => {
+  const { data, error } = await supabase
+    .from('items')
+    .insert({
+      name: itemData.name,
+      category_id: itemData.category_id,
+      warehouse_id: itemData.warehouse_id,
+      quantity: itemData.quantity || 0,
+      description: itemData.description
+    })
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('Error creating item:', error);
+    throw new Error('Failed to create item');
+  }
+  
+  return {
+    ...data,
+    message: 'Item created successfully'
+  };
+};
+
+export const updateItem = async (id, itemData) => {
+  const { data, error } = await supabase
+    .from('items')
+    .update({
+      name: itemData.name,
+      category_id: itemData.category_id,
+      warehouse_id: itemData.warehouse_id,
+      quantity: itemData.quantity,
+      description: itemData.description
+    })
+    .eq('id', id)
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('Error updating item:', error);
+    throw new Error('Failed to update item');
+  }
+  
+  if (!data) {
+    throw new Error('Item not found');
+  }
+  
+  return { message: 'Item updated successfully' };
+};
+
+export const deleteItem = async (id) => {
+  const { data, error } = await supabase
+    .from('items')
+    .delete()
+    .eq('id', id);
+  
+  if (error) {
+    console.error('Error deleting item:', error);
+    throw new Error('Failed to delete item');
+  }
+  
+  if (data.length === 0) {
+    throw new Error('Item not found');
+  }
+  
+  return { message: 'Item deleted successfully' };
+};

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getAllWarehouses } from '../services/warehouseService';
-import { getItemsByWarehouse, updateItemQuantity, createTransaction } from '../services/itemService';
+import { getItemsByWarehouseService, updateItemQuantityService, createTransactionService } from '../services/itemService';
 import { useNotification } from '../components/NotificationProvider';
 import { RefreshCw, Package, User, FileText } from 'lucide-react';
 
@@ -49,7 +49,7 @@ const AdminTransactionOperations = ({ onTransactionComplete }) => {
       if (selectedWarehouse) {
         try {
           setLoading(true);
-          const data = await getItemsByWarehouse(selectedWarehouse);
+          const data = await getItemsByWarehouseService(selectedWarehouse);
           setItems(data);
           setLoading(false);
         } catch (error) {
@@ -111,10 +111,10 @@ const AdminTransactionOperations = ({ onTransactionComplete }) => {
             notes: notes
           };
           
-          await createTransaction(issueTransactionData);
+          await createTransactionService(issueTransactionData);
           
           // Update item quantity
-          await updateItemQuantity(selectedItem, -quantity);
+          await updateItemQuantityService(selectedItem, -quantity);
           
           addNotification({
             message: 'تم صرف العنصر بنجاح!',
@@ -149,10 +149,10 @@ const AdminTransactionOperations = ({ onTransactionComplete }) => {
             notes: notes
           };
           
-          await createTransaction(returnTransactionData);
+          await createTransactionService(returnTransactionData);
           
           // Update item quantity
-          await updateItemQuantity(selectedItem, quantity);
+          await updateItemQuantityService(selectedItem, quantity);
           
           addNotification({
             message: 'تم إرجاع العنصر بنجاح!',
@@ -187,10 +187,10 @@ const AdminTransactionOperations = ({ onTransactionComplete }) => {
             notes: notes ? `تبديل: ${notes}` : 'تبديل عنصر'
           };
           
-          await createTransaction(outgoingTransactionData);
+          await createTransactionService(outgoingTransactionData);
           
           // Update outgoing item quantity
-          await updateItemQuantity(outgoingItem, -outgoingQuantity);
+          await updateItemQuantityService(outgoingItem, -outgoingQuantity);
           
           // Create incoming transaction record
           const incomingTransactionData = {
@@ -202,10 +202,10 @@ const AdminTransactionOperations = ({ onTransactionComplete }) => {
             notes: notes ? `تبديل: ${notes}` : 'تبديل عنصر'
           };
           
-          await createTransaction(incomingTransactionData);
+          await createTransactionService(incomingTransactionData);
           
           // Update incoming item quantity
-          await updateItemQuantity(incomingItem, incomingQuantity);
+          await updateItemQuantityService(incomingItem, incomingQuantity);
           
           addNotification({
             message: 'تم تبديل العناصر بنجاح!',
@@ -263,7 +263,7 @@ const AdminTransactionOperations = ({ onTransactionComplete }) => {
               const loadItems = async () => {
                 try {
                   setLoading(true);
-                  const data = await getItemsByWarehouse(selectedWarehouse);
+                  const data = await getItemsByWarehouseService(selectedWarehouse);
                   setItems(data);
                   addNotification({
                     message: 'تم تحديث بيانات العناصر',

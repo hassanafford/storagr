@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getAllWarehouses } from '../services/warehouseService';
-import { getItemsByWarehouse, getLowInventoryItems } from '../services/itemService';
+import { getItemsByWarehouseService, getLowInventoryItemsService } from '../services/itemService';
 
 const DataVerification = () => {
   const [warehouses, setWarehouses] = useState([]);
@@ -15,7 +15,7 @@ const DataVerification = () => {
         setLoading(true);
         const [warehousesData, lowItems] = await Promise.all([
           getAllWarehouses(),
-          getLowInventoryItems(10)
+          getLowInventoryItemsService(10)
         ]);
 
         setWarehouses(warehousesData);
@@ -24,7 +24,7 @@ const DataVerification = () => {
         // Load all items for each warehouse
         const allItems = [];
         for (const warehouse of warehousesData) {
-          const warehouseItems = await getItemsByWarehouse(warehouse.id);
+          const warehouseItems = await getItemsByWarehouseService(warehouse.id);
           allItems.push(...warehouseItems.map(item => ({
             ...item,
             warehouse_name: warehouse.name
@@ -46,7 +46,7 @@ const DataVerification = () => {
   const warehouseStats = warehouses.map(warehouse => {
     const warehouseItems = items.filter(item => item.warehouse_id == warehouse.id);
     const totalItems = warehouseItems.reduce((sum, item) => sum + (item.quantity || 0), 0);
-    
+
     // Determine status based on item count
     let status = 'normal';
     if (totalItems < 300) {
@@ -54,7 +54,7 @@ const DataVerification = () => {
     } else if (totalItems > 1000) {
       status = 'high';
     }
-    
+
     return {
       id: warehouse.id,
       name: warehouse.name,
@@ -96,35 +96,33 @@ const DataVerification = () => {
   return (
     <div className="bg-white rounded-xl shadow-lg p-6" dir="rtl">
       <h2 className="text-2xl font-bold text-gray-800 mb-6">التحقق من دقة البيانات</h2>
-      
+
       {/* Warehouse Stats Verification */}
       <div className="mb-8">
         <h3 className="text-xl font-semibold text-gray-800 mb-4">إحصائيات المخازن</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {warehouseStats.map(warehouse => (
-            <div key={warehouse.id} className={`p-4 rounded-lg border ${
-              warehouse.status === 'low' ? 'bg-red-50 border-red-200' :
-              warehouse.status === 'high' ? 'bg-blue-50 border-blue-200' :
-              'bg-gray-50 border-gray-200'
-            }`}>
+            <div key={warehouse.id} className={`p-4 rounded-lg border ${warehouse.status === 'low' ? 'bg-red-50 border-red-200' :
+                warehouse.status === 'high' ? 'bg-blue-50 border-blue-200' :
+                  'bg-gray-50 border-gray-200'
+              }`}>
               <h4 className="font-medium text-gray-800">{warehouse.name}</h4>
               <p className="text-lg font-bold mt-1">
                 {warehouse.items.toLocaleString()} عنصر
               </p>
-              <span className={`inline-block px-2 py-1 text-xs rounded-full mt-2 ${
-                warehouse.status === 'low' ? 'bg-red-100 text-red-800' :
-                warehouse.status === 'high' ? 'bg-blue-100 text-blue-800' :
-                'bg-gray-100 text-gray-800'
-              }`}>
+              <span className={`inline-block px-2 py-1 text-xs rounded-full mt-2 ${warehouse.status === 'low' ? 'bg-red-100 text-red-800' :
+                  warehouse.status === 'high' ? 'bg-blue-100 text-blue-800' :
+                    'bg-gray-100 text-gray-800'
+                }`}>
                 {warehouse.status === 'low' ? 'منخفض' :
-                 warehouse.status === 'high' ? 'مرتفع' :
-                 'عادي'}
+                  warehouse.status === 'high' ? 'مرتفع' :
+                    'عادي'}
               </span>
             </div>
           ))}
         </div>
       </div>
-      
+
       {/* Low Inventory Items Verification */}
       <div className="mb-8">
         <h3 className="text-xl font-semibold text-gray-800 mb-4">
@@ -133,7 +131,7 @@ const DataVerification = () => {
         <p className="text-gray-600 mb-4">
           إجمالي العناصر المنخفضة: {lowInventoryItems.length}
         </p>
-        
+
         {lowItemsByWarehouse.length > 0 ? (
           <div className="space-y-6">
             {lowItemsByWarehouse.map(warehouseGroup => (
@@ -170,7 +168,7 @@ const DataVerification = () => {
           </div>
         )}
       </div>
-      
+
       {/* Raw Data */}
       <div>
         <h3 className="text-xl font-semibold text-gray-800 mb-4">البيانات الأولية</h3>
@@ -191,9 +189,8 @@ const DataVerification = () => {
                   <tr key={`${item.warehouse_id}-${item.id}`}>
                     <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500">{item.warehouse_name}</td>
                     <td className="px-4 py-2 whitespace-nowrap text-sm font-medium text-gray-900">{item.name}</td>
-                    <td className={`px-4 py-2 whitespace-nowrap text-sm ${
-                      item.quantity <= 10 ? 'text-red-600 font-bold' : 'text-gray-500'
-                    }`}>{item.quantity}</td>
+                    <td className={`px-4 py-2 whitespace-nowrap text-sm ${item.quantity <= 10 ? 'text-red-600 font-bold' : 'text-gray-500'
+                      }`}>{item.quantity}</td>
                     <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500">{item.category_name}</td>
                   </tr>
                 ))}
