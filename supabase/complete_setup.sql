@@ -302,57 +302,96 @@ ALTER TABLE transactions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE audit_logs ENABLE ROW LEVEL SECURITY;
 
--- سياسات المستودعات
-CREATE POLICY "Allow read access to warehouses" ON warehouses
+-- سياسات المستودعات - السماح بالوصول الكامل (للتطوير)
+CREATE POLICY "Allow public read access to warehouses" ON warehouses
   FOR SELECT USING (true);
 
-CREATE POLICY "Allow admin full access to warehouses" ON warehouses
-  FOR ALL USING (true);
+CREATE POLICY "Allow public insert to warehouses" ON warehouses
+  FOR INSERT WITH CHECK (true);
 
--- سياسات الفئات
-CREATE POLICY "Allow read access to categories" ON categories
-  FOR SELECT USING (true);
-
-CREATE POLICY "Allow admin to manage categories" ON categories
-  FOR ALL USING (true);
-
--- سياسات المستخدمين
-CREATE POLICY "Users can read their own data" ON users
-  FOR SELECT USING (true);
-
-CREATE POLICY "Admin can manage users" ON users
-  FOR ALL USING (true);
-
--- سياسات العناصر
-CREATE POLICY "Users can read items from their warehouse" ON items
-  FOR SELECT USING (true);
-
-CREATE POLICY "Employees can update items in their warehouse" ON items
+CREATE POLICY "Allow public update to warehouses" ON warehouses
   FOR UPDATE USING (true);
 
-CREATE POLICY "Admin can manage all items" ON items
-  FOR ALL USING (true);
+CREATE POLICY "Allow public delete to warehouses" ON warehouses
+  FOR DELETE USING (true);
 
--- سياسات المعاملات
-CREATE POLICY "Users can read transactions from their warehouse" ON transactions
+-- سياسات الفئات - السماح بالوصول الكامل
+CREATE POLICY "Allow public read access to categories" ON categories
   FOR SELECT USING (true);
 
-CREATE POLICY "Employees can create transactions" ON transactions
+CREATE POLICY "Allow public insert to categories" ON categories
   FOR INSERT WITH CHECK (true);
 
--- سياسات الإشعارات
-CREATE POLICY "Users can read their notifications" ON notifications
+CREATE POLICY "Allow public update to categories" ON categories
+  FOR UPDATE USING (true);
+
+CREATE POLICY "Allow public delete to categories" ON categories
+  FOR DELETE USING (true);
+
+-- سياسات المستخدمين - السماح بالوصول الكامل
+CREATE POLICY "Allow public read access to users" ON users
   FOR SELECT USING (true);
 
-CREATE POLICY "System can create notifications" ON notifications
+CREATE POLICY "Allow public insert to users" ON users
   FOR INSERT WITH CHECK (true);
 
--- سياسات سجل التدقيق
-CREATE POLICY "Admin can read audit logs" ON audit_logs
+CREATE POLICY "Allow public update to users" ON users
+  FOR UPDATE USING (true);
+
+CREATE POLICY "Allow public delete to users" ON users
+  FOR DELETE USING (true);
+
+-- سياسات العناصر - السماح بالوصول الكامل
+CREATE POLICY "Allow public read access to items" ON items
   FOR SELECT USING (true);
 
-CREATE POLICY "System can create audit logs" ON audit_logs
+CREATE POLICY "Allow public insert to items" ON items
   FOR INSERT WITH CHECK (true);
+
+CREATE POLICY "Allow public update to items" ON items
+  FOR UPDATE USING (true);
+
+CREATE POLICY "Allow public delete to items" ON items
+  FOR DELETE USING (true);
+
+-- سياسات المعاملات - السماح بالوصول الكامل
+CREATE POLICY "Allow public read access to transactions" ON transactions
+  FOR SELECT USING (true);
+
+CREATE POLICY "Allow public insert to transactions" ON transactions
+  FOR INSERT WITH CHECK (true);
+
+CREATE POLICY "Allow public update to transactions" ON transactions
+  FOR UPDATE USING (true);
+
+CREATE POLICY "Allow public delete to transactions" ON transactions
+  FOR DELETE USING (true);
+
+-- سياسات الإشعارات - السماح بالوصول الكامل
+CREATE POLICY "Allow public read access to notifications" ON notifications
+  FOR SELECT USING (true);
+
+CREATE POLICY "Allow public insert to notifications" ON notifications
+  FOR INSERT WITH CHECK (true);
+
+CREATE POLICY "Allow public update to notifications" ON notifications
+  FOR UPDATE USING (true);
+
+CREATE POLICY "Allow public delete to notifications" ON notifications
+  FOR DELETE USING (true);
+
+-- سياسات سجل التدقيق - السماح بالوصول الكامل
+CREATE POLICY "Allow public read access to audit_logs" ON audit_logs
+  FOR SELECT USING (true);
+
+CREATE POLICY "Allow public insert to audit_logs" ON audit_logs
+  FOR INSERT WITH CHECK (true);
+
+CREATE POLICY "Allow public update to audit_logs" ON audit_logs
+  FOR UPDATE USING (true);
+
+CREATE POLICY "Allow public delete to audit_logs" ON audit_logs
+  FOR DELETE USING (true);
 
 -- ============================================
 -- المرحلة 7: إدراج البيانات الأساسية
