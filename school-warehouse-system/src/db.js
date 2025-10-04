@@ -64,17 +64,9 @@ export const authenticateUser = async (nationalId, password) => {
 
     const user = data;
 
-    // Create a token using btoa (browser-compatible base64 encoding)
-    const token = btoa(JSON.stringify({
-      id: user.id,
-      national_id: user.national_id,
-      name: user.name,
-      role: user.role,
-      warehouse_id: user.warehouse_id
-    }));
-
+    // إرجاع بيانات المستخدم مباشرة بدون تشفير
+    // Supabase يدير الجلسات تلقائيًا
     return {
-      token,
       user: {
         id: user.id,
         national_id: user.national_id,

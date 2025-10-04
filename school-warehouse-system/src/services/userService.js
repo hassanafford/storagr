@@ -20,21 +20,14 @@ export const logoutUser = () => {
 export const authenticateUserService = async (nationalId, password) => {
   try {
     const response = await authenticateUser(nationalId, password);
-    
-    if (response.token && response.user) {
-      // Save user with token to localStorage
-      saveUser({
-        ...response.user,
-        token: response.token
-      });
-      
-      return {
-        ...response.user,
-        token: response.token
-      };
+
+    if (response.user) {
+      // Save user to localStorage (no token needed)
+      saveUser(response.user);
+      return response.user;
     }
-    
-    return response;
+
+    throw new Error('Authentication failed');
   } catch (error) {
     console.error('Authentication error:', error);
     throw error;
