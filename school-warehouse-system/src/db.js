@@ -2,7 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 
 // Supabase configuration - Fixed for Vite environment variables
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://oselaoheeykmsvkvrfwa.supabase.co';
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9zZWxhb2hlZXlrbXN2a3ZyZndhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk1NzMwNTIsImV4cCI6MjA3NTE0OTA1Mn0.fLxfxm6rHQwlYYc2EqDazsyc-RwXY2pWmEbH_mbqGHc';
 
 // Create Supabase client
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
