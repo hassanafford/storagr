@@ -524,9 +524,11 @@ export const getTransactions = async () => {
     .from('transactions')
     .select(`
       *,
-      items (name),
-      users (name),
-      warehouses (name)
+      items!inner (
+        name,
+        warehouses (name)
+      ),
+      users (name)
     `)
     .order('created_at', { ascending: false });
 
