@@ -83,6 +83,10 @@ const DashboardPieChart = ({
             fontWeight: 500,
           },
           formatter: function (val, opts) {
+            // Add safeguard to prevent "Cannot read properties of undefined" error
+            if (!opts || !opts.w || !opts.w.globals || !opts.w.globals.seriesTotals) {
+              return `${val}`;
+            }
             const total = opts.w.globals.seriesTotals.reduce((a, b) => a + b, 0);
             const percentage = ((val / total) * 100).toFixed(1);
             return `${opts.w.config.labels[opts.seriesIndex]}\n${percentage}%`;
@@ -106,6 +110,10 @@ const DashboardPieChart = ({
         tooltip: {
           y: {
             formatter: function (val, opts) {
+              // Add safeguard to prevent "Cannot read properties of undefined" error
+              if (!opts || !opts.w || !opts.w.globals || !opts.w.globals.seriesTotals) {
+                return `${val.toLocaleString()} عنصر`;
+              }
               const total = opts.w.globals.seriesTotals.reduce((a, b) => a + b, 0);
               const percentage = ((val / total) * 100).toFixed(1);
               return `${val.toLocaleString()} عنصر (${percentage}%)`;
