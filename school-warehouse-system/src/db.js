@@ -649,10 +649,7 @@ export const deleteWarehouse = async (id) => {
 export const getCategories = async () => {
   const { data, error } = await supabase
     .from('categories')
-    .select(`
-      *,
-      warehouses (name)
-    `);
+    .select('*');
 
   if (error) {
     console.error('Error fetching categories:', error);
@@ -685,8 +682,7 @@ export const createCategory = async (categoryData) => {
   const { data, error } = await supabase
     .from('categories')
     .insert({
-      name: categoryData.name,
-      warehouse_id: categoryData.warehouse_id
+      name: categoryData.name
     })
     .select()
     .single();
@@ -706,8 +702,7 @@ export const updateCategory = async (id, categoryData) => {
   const { data, error } = await supabase
     .from('categories')
     .update({
-      name: categoryData.name,
-      warehouse_id: categoryData.warehouse_id
+      name: categoryData.name
     })
     .eq('id', id)
     .select()

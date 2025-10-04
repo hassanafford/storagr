@@ -30,10 +30,6 @@ export const createCategoryService = async (categoryData) => {
     throw new Error('اسم الفئة يجب أن يكون على الأقل 3 أحرف');
   }
   
-  if (!categoryData.warehouse_id) {
-    throw new Error('المخزن مطلوب');
-  }
-  
   try {
     const data = await createCategory(categoryData);
     return data;
@@ -51,10 +47,6 @@ export const updateCategoryService = async (id, categoryData) => {
   
   if (categoryData.name.length < 3) {
     throw new Error('اسم الفئة يجب أن يكون على الأقل 3 أحرف');
-  }
-  
-  if (!categoryData.warehouse_id) {
-    throw new Error('المخزن مطلوب');
   }
   
   try {

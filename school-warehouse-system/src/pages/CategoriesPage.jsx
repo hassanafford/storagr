@@ -1,24 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { useNotification } from '../components/NotificationProvider';
 import { getAllCategoriesService, createCategoryService, updateCategoryService, deleteCategoryService } from '../services/categoryService';
-import { getAllWarehouses } from '../services/warehouseService';
 
 function CategoriesPage() {
   const { addNotification } = useNotification();
   const [categories, setCategories] = useState([]);
-  const [warehouses, setWarehouses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingCategory, setEditingCategory] = useState(null);
   const [formData, setFormData] = useState({
-    name: '',
-    warehouse_id: ''
+    name: ''
   });
   const [formErrors, setFormErrors] = useState({});
 
   useEffect(() => {
     loadCategories();
-    loadWarehouses();
   }, []);
 
   const loadCategories = async () => {
@@ -34,19 +30,6 @@ function CategoriesPage() {
         type: 'error'
       });
       setLoading(false);
-    }
-  };
-
-  const loadWarehouses = async () => {
-    try {
-      const data = await getAllWarehouses();
-      setWarehouses(data);
-    } catch (error) {
-      console.error('Error loading warehouses:', error);
-      addNotification({
-        message: 'حدث خطأ أثناء تحميل المخازن',
-        type: 'error'
-      });
     }
   };
 
@@ -72,10 +55,6 @@ function CategoriesPage() {
       errors.name = 'اسم الفئة مطلوب';
     } else if (formData.name.length < 3) {
       errors.name = 'اسم الفئة يجب أن يكون على الأقل 3 أحرف';
-    }
-    
-    if (!formData.warehouse_id) {
-      errors.warehouse_id = 'المخزن مطلوب';
     }
     
     setFormErrors(errors);
@@ -107,7 +86,7 @@ function CategoriesPage() {
       }
       
       // Reset form and reload data
-      setFormData({ name: '', warehouse_id: '' });
+      setFormData({ name: '' });
       setFormErrors({});
       setEditingCategory(null);
       setShowForm(false);
@@ -124,8 +103,7 @@ function CategoriesPage() {
   const handleEdit = (category) => {
     setEditingCategory(category);
     setFormData({
-      name: category.name,
-      warehouse_id: category.warehouse_id
+      name: category.name
     });
     setFormErrors({});
     setShowForm(true);
@@ -151,7 +129,7 @@ function CategoriesPage() {
   };
 
   const handleCancel = () => {
-    setFormData({ name: '', warehouse_id: '' });
+    setFormData({ name: '' });
     setFormErrors({});
     setEditingCategory(null);
     setShowForm(false);
@@ -202,26 +180,6 @@ function CategoriesPage() {
               />
               {formErrors.name && (
                 <p className="mt-1 text-sm text-red-600">{formErrors.name}</p>
-              )}
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">المخزن</label>
-              <select
-                name="warehouse_id"
-                value={formData.warehouse_id}
-                onChange={handleInputChange}
-                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                  formErrors.warehouse_id ? 'border-red-500' : 'border-gray-300'
-                }`}
-              >
-                <option value="">اختر المخزن</option>
-                {warehouses.map((warehouse) => (
-                  <option key={warehouse.id} value={warehouse.id}>{warehouse.name}</option>
-                ))}
-              </select>
-              {formErrors.warehouse_id && (
-                <p className="mt-1 text-sm text-red-600">{formErrors.warehouse_id}</p>
               )}
             </div>
             

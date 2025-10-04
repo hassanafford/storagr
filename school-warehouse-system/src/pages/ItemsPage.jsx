@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNotification } from '../components/NotificationProvider';
 import { getAllItemsService, createItemService, updateItemService, deleteItemService, searchItemsService } from '../services/itemService';
-import { getAllWarehouses } from '../services/warehouseService';
+import { getAllWarehousesService } from '../services/warehouseService';
 import { getAllCategoriesService } from '../services/categoryService';
 
 function ItemsPage() {
