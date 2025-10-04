@@ -99,7 +99,7 @@ const TransactionForms = ({ user, warehouse, onTransactionComplete }) => {
       const transactionData = {
         item_id: issueForm.item_id,
         user_id: user.id,
-        transaction_type: 'issue',
+        transaction_type: 'out', // Changed from 'issue' to 'out'
         quantity: -Math.abs(issueForm.quantity), // Negative for issue
         recipient: issueForm.recipient,
         notes: issueForm.notes
@@ -157,7 +157,7 @@ const TransactionForms = ({ user, warehouse, onTransactionComplete }) => {
       const transactionData = {
         item_id: returnForm.item_id,
         user_id: user.id,
-        transaction_type: 'return',
+        transaction_type: 'in', // Changed from 'return' to 'in'
         quantity: Math.abs(returnForm.quantity), // Positive for return
         notes: returnForm.notes
       };
@@ -223,7 +223,7 @@ const TransactionForms = ({ user, warehouse, onTransactionComplete }) => {
       const exchangeOutData = {
         item_id: exchangeForm.old_item_id,
         user_id: user.id,
-        transaction_type: 'exchange_out',
+        transaction_type: 'out', // Changed from 'exchange_out' to 'out'
         quantity: -Math.abs(exchangeForm.quantity),
         notes: exchangeForm.notes ? `استبدال: ${exchangeForm.notes}` : 'استبدال عنصر'
       };
@@ -234,7 +234,7 @@ const TransactionForms = ({ user, warehouse, onTransactionComplete }) => {
       const exchangeInData = {
         item_id: exchangeForm.new_item_id,
         user_id: user.id,
-        transaction_type: 'exchange_in',
+        transaction_type: 'in', // Changed from 'exchange_in' to 'in'
         quantity: Math.abs(exchangeForm.quantity),
         notes: exchangeForm.notes ? `استبدال: ${exchangeForm.notes}` : 'استبدال عنصر'
       };
@@ -360,7 +360,7 @@ const TransactionForms = ({ user, warehouse, onTransactionComplete }) => {
           <div className="space-y-2">
             <Label htmlFor="return-item">العنصر</Label>
             <Select 
-              value={returnForm.item_id} 
+              value={returnForm.item_id}
               onValueChange={(value) => setReturnForm({...returnForm, item_id: value})}
               disabled={loadingItems}
             >

@@ -101,24 +101,31 @@ const AdminTransactionOperations = ({ onTransactionComplete }) => {
             return;
           }
           
-          // Create transaction record
-          const issueTransactionData = {
-            item_id: selectedItem,
-            user_id: JSON.parse(localStorage.getItem('user')).id,
-            transaction_type: 'issue',
-            quantity: -quantity, // Negative for issuing
+          const issueFormData = {
+            itemId: selectedItem,
+            quantity: quantity,
             recipient: recipient,
             notes: notes
           };
           
+          // Create transaction record
+          const issueTransactionData = {
+            item_id: issueFormData.itemId,
+            user_id: JSON.parse(localStorage.getItem('user')).id,
+            transaction_type: 'out', // Changed from 'issue' to 'out'
+            quantity: -issueFormData.quantity,
+            recipient: issueFormData.recipient,
+            notes: issueFormData.notes
+          };
+
           await createTransactionService(issueTransactionData);
           
           // Update item quantity
-          await updateItemQuantityService(selectedItem, -quantity);
+          await updateItemQuantityService(issueFormData.itemId, -issueFormData.quantity);
           
           addNotification({
             message: 'تم صرف العنصر بنجاح!',
-            details: `العنصر: ${items.find(i => i.id == selectedItem)?.name} | الكمية: ${quantity} | المستلم: ${recipient}`,
+            details: `العنصر: ${items.find(i => i.id == issueFormData.itemId)?.name} | الكمية: ${issueFormData.quantity} | المستلم: ${issueFormData.recipient}`,
             type: 'success'
           });
           
@@ -139,24 +146,31 @@ const AdminTransactionOperations = ({ onTransactionComplete }) => {
             return;
           }
           
-          // Create transaction record
-          const returnTransactionData = {
-            item_id: selectedItem,
-            user_id: JSON.parse(localStorage.getItem('user')).id,
-            transaction_type: 'return',
-            quantity: quantity, // Positive for returning
-            recipient: condition,
+          const returnFormData = {
+            itemId: selectedItem,
+            quantity: quantity,
+            condition: condition,
             notes: notes
           };
           
+          // Create transaction record
+          const returnTransactionData = {
+            item_id: returnFormData.itemId,
+            user_id: JSON.parse(localStorage.getItem('user')).id,
+            transaction_type: 'in', // Changed from 'return' to 'in'
+            quantity: returnFormData.quantity,
+            recipient: returnFormData.condition,
+            notes: returnFormData.notes
+          };
+
           await createTransactionService(returnTransactionData);
           
           // Update item quantity
-          await updateItemQuantityService(selectedItem, quantity);
+          await updateItemQuantityService(returnFormData.itemId, returnFormData.quantity);
           
           addNotification({
             message: 'تم إرجاع العنصر بنجاح!',
-            details: `العنصر: ${items.find(i => i.id == selectedItem)?.name} | الكمية: ${quantity} | الحالة: ${condition}`,
+            details: `العنصر: ${items.find(i => i.id == returnFormData.itemId)?.name} | الكمية: ${returnFormData.quantity} | الحالة: ${returnFormData.condition}`,
             type: 'success'
           });
           
@@ -177,39 +191,48 @@ const AdminTransactionOperations = ({ onTransactionComplete }) => {
             return;
           }
           
-          // Create outgoing transaction record
-          const outgoingTransactionData = {
-            item_id: outgoingItem,
-            user_id: JSON.parse(localStorage.getItem('user')).id,
-            transaction_type: 'exchange_out',
-            quantity: -outgoingQuantity, // Negative for outgoing
+          const exchangeFormData = {
+            outgoingItemId: outgoingItem,
+            incomingItemId: incomingItem,
+            outgoingQuantity: outgoingQuantity,
+            incomingQuantity: incomingQuantity,
             recipient: recipient,
-            notes: notes ? `تبديل: ${notes}` : 'تبديل عنصر'
+            notes: notes
           };
           
+          // Create outgoing transaction record
+          const outgoingTransactionData = {
+            item_id: exchangeFormData.outgoingItemId,
+            user_id: JSON.parse(localStorage.getItem('user')).id,
+            transaction_type: 'out', // Changed from 'exchange_out' to 'out'
+            quantity: -exchangeFormData.outgoingQuantity,
+            recipient: exchangeFormData.recipient,
+            notes: exchangeFormData.notes ? `تبديل: ${exchangeFormData.notes}` : 'تبديل عنصر'
+          };
+
           await createTransactionService(outgoingTransactionData);
           
           // Update outgoing item quantity
-          await updateItemQuantityService(outgoingItem, -outgoingQuantity);
+          await updateItemQuantityService(exchangeFormData.outgoingItemId, -exchangeFormData.outgoingQuantity);
           
           // Create incoming transaction record
           const incomingTransactionData = {
-            item_id: incomingItem,
+            item_id: exchangeFormData.incomingItemId,
             user_id: JSON.parse(localStorage.getItem('user')).id,
-            transaction_type: 'exchange_in',
-            quantity: incomingQuantity, // Positive for incoming
-            recipient: recipient,
-            notes: notes ? `تبديل: ${notes}` : 'تبديل عنصر'
+            transaction_type: 'in', // Changed from 'exchange_in' to 'in'
+            quantity: exchangeFormData.incomingQuantity,
+            recipient: exchangeFormData.recipient,
+            notes: exchangeFormData.notes ? `تبديل: ${exchangeFormData.notes}` : 'تبديل عنصر'
           };
-          
+
           await createTransactionService(incomingTransactionData);
           
           // Update incoming item quantity
-          await updateItemQuantityService(incomingItem, incomingQuantity);
+          await updateItemQuantityService(exchangeFormData.incomingItemId, exchangeFormData.incomingQuantity);
           
           addNotification({
             message: 'تم تبديل العناصر بنجاح!',
-            details: `التصبع: ${items.find(i => i.id == outgoingItem)?.name} (${outgoingQuantity}) | الوارد: ${items.find(i => i.id == incomingItem)?.name} (${incomingQuantity}) | المستلم: ${recipient}`,
+            details: `التصبع: ${items.find(i => i.id == exchangeFormData.outgoingItemId)?.name} (${exchangeFormData.outgoingQuantity}) | الوارد: ${items.find(i => i.id == exchangeFormData.incomingItemId)?.name} (${exchangeFormData.incomingQuantity}) | المستلم: ${exchangeFormData.recipient}`,
             type: 'success'
           });
           

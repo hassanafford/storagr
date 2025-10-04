@@ -83,7 +83,7 @@ const AdminTransactionPanel = () => {
       const transactionData = {
         item_id: issueData.item_id,
         user_id: 1, // Admin user ID - in a real app, this would be the actual admin ID
-        transaction_type: 'issue',
+        transaction_type: 'out', // Changed from 'issue' to 'out'
         quantity: -Math.abs(issueData.quantity), // Negative for issuing
         recipient: issueData.recipient,
         notes: issueData.notes
@@ -127,7 +127,7 @@ const AdminTransactionPanel = () => {
       const transactionData = {
         item_id: returnData.item_id,
         user_id: 1, // Admin user ID - in a real app, this would be the actual admin ID
-        transaction_type: 'return',
+        transaction_type: 'in', // Changed from 'return' to 'in'
         quantity: Math.abs(returnData.quantity), // Positive for returning
         recipient: returnData.condition,
         notes: returnData.notes
@@ -171,7 +171,7 @@ const AdminTransactionPanel = () => {
       const outgoingTransactionData = {
         item_id: exchangeData.outgoing_item_id,
         user_id: 1, // Admin user ID - in a real app, this would be the actual admin ID
-        transaction_type: 'exchange_out',
+        transaction_type: 'out', // Changed from 'exchange_out' to 'out'
         quantity: -Math.abs(exchangeData.outgoing_quantity), // Negative for outgoing
         recipient: exchangeData.recipient,
         notes: exchangeData.notes ? `تبديل: ${exchangeData.notes}` : 'تبديل عنصر'
@@ -186,7 +186,7 @@ const AdminTransactionPanel = () => {
       const incomingTransactionData = {
         item_id: exchangeData.incoming_item_id,
         user_id: 1, // Admin user ID - in a real app, this would be the actual admin ID
-        transaction_type: 'exchange_in',
+        transaction_type: 'in', // Changed from 'exchange_in' to 'in'
         quantity: Math.abs(exchangeData.incoming_quantity), // Positive for incoming
         recipient: exchangeData.recipient,
         notes: exchangeData.notes ? `تبديل: ${exchangeData.notes}` : 'تبديل عنصر'
@@ -282,10 +282,13 @@ const AdminTransactionPanel = () => {
         const transactionData = {
           item_id: auditData.item_id,
           user_id: 1, // Admin user ID
-          transaction_type: 'audit_adjustment',
-          quantity: difference,
-          recipient: '_inventory_audit_',
-          notes: `جرد مخزن: ${auditData.notes || 'تعديل كمية بعد الجرد'}`
+          transaction_type: 'audit', // Changed from 'audit_adjustment' to 'audit'
+          quantity: difference, // Can be positive or negative
+          recipient: '_inventory_adjustment_', // Special identifier for adjustments
+          notes: auditData.reason || 'تعديل يدوي للكمية',
+          expected_quantity: currentDbQuantity,
+          actual_quantity: auditData.physical_quantity,
+          discrepancy: difference
         };
         
         await createTransaction(transactionData);

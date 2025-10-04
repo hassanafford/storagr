@@ -517,7 +517,7 @@ function IssueItemsForm({ addNotification, user, warehouse }) {
       const transactionData = {
         item_id: selectedItem,
         user_id: user.id,
-        transaction_type: 'issue',
+        transaction_type: 'out', // Changed from 'issue' to 'out'
         quantity: -quantity, // Negative for issuing
         recipient: recipient,
         notes: notes
@@ -675,7 +675,7 @@ function ReturnItemsForm({ addNotification, user, warehouse }) {
       const transactionData = {
         item_id: selectedItem,
         user_id: user.id,
-        transaction_type: 'return',
+        transaction_type: 'in', // Changed from 'return' to 'in'
         quantity: quantity, // Positive for returning
         recipient: condition,
         notes: notes
@@ -841,7 +841,7 @@ function ExchangeItemsForm({ addNotification, user, warehouse }) {
       const outgoingTransactionData = {
         item_id: outgoingItem,
         user_id: user.id,
-        transaction_type: 'exchange_out',
+        transaction_type: 'out', // Changed from 'exchange_out' to 'out'
         quantity: -outgoingQuantity, // Negative for outgoing
         recipient: recipient,
         notes: notes ? `تبديل: ${notes}` : 'تبديل عنصر'
@@ -856,7 +856,7 @@ function ExchangeItemsForm({ addNotification, user, warehouse }) {
       const incomingTransactionData = {
         item_id: incomingItem,
         user_id: user.id,
-        transaction_type: 'exchange_in',
+        transaction_type: 'in', // Changed from 'exchange_in' to 'in'
         quantity: incomingQuantity, // Positive for incoming
         recipient: recipient,
         notes: notes ? `تبديل: ${notes}` : 'تبديل عنصر'
