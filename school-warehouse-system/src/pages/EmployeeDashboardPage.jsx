@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { Menu, X, Home, Warehouse, FileText } from 'lucide-react';
 import analyticsService from '../services/analyticsService';
 import DashboardPieChart from '../components/DashboardPieChart';
-import { initNotificationWebSocket, disconnectWebSocket } from '../services/websocketService';
+import { subscribeToInventoryUpdates, subscribeToTransactions } from '../services/realtimeService';
 
 function EmployeeDashboardPage({ user }) {
   const [activeTab, setActiveTab] = useState('analytics');
@@ -20,9 +20,6 @@ function EmployeeDashboardPage({ user }) {
   const [analyticsData, setAnalyticsData] = useState(null);
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
   const [analyticsError, setAnalyticsError] = useState(null);
-
-  // WebSocket state
-  const [websocketInitialized, setWebsocketInitialized] = useState(false);
 
   useEffect(() => {
     const loadWarehouse = async () => {
@@ -47,41 +44,26 @@ function EmployeeDashboardPage({ user }) {
     loadWarehouse();
   }, [user.warehouse_id]);
 
-  // Initialize WebSocket for real-time updates
   useEffect(() => {
-    if (!websocketInitialized && warehouse) {
-      try {
-        initNotificationWebSocket((notification) => {
-          // Handle real-time notifications
-          addNotification({
-            message: notification.message,
-            details: notification.details,
-            quantity: notification.quantity,
-            type: notification.type
-          });
+    if (!warehouse) return;
 
-          // Refresh data when notifications are received
-          loadEmployeeAnalytics(warehouse.id);
+    const inventorySub = subscribeToInventoryUpdates((data) => {
+      loadEmployeeAnalytics(warehouse.id);
+      addNotification({
+        message: `تم تحديث المخزون: ${data.item?.name || 'عنصر'}`,
+        type: 'info'
+      });
+    }, warehouse.id);
 
-          // Refresh transaction log if it's currently active
-          if (activeTab === 'log') {
-            // The TransactionLog component will handle its own refresh
-          }
-        });
-        setWebsocketInitialized(true);
-      } catch (error) {
-        console.error('Failed to initialize WebSocket:', error);
-      }
-    }
+    const transactionsSub = subscribeToTransactions((transaction) => {
+      loadEmployeeAnalytics(warehouse.id);
+    });
 
-    // Clean up WebSocket connection on unmount
     return () => {
-      if (websocketInitialized) {
-        disconnectWebSocket();
-        setWebsocketInitialized(false);
-      }
+      inventorySub.unsubscribe();
+      transactionsSub.unsubscribe();
     };
-  }, [warehouse, activeTab]);
+  }, [warehouse]);
 
   // Load employee analytics data
   const loadEmployeeAnalytics = async (warehouseId) => {

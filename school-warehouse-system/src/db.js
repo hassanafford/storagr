@@ -16,27 +16,27 @@ const getToken = () => {
 // Authentication function using Supabase
 export const authenticateUser = async (nationalId, password) => {
   console.log('Login attempt:', { nationalId, password });
-  
+
   if (!nationalId || !password) {
     throw new Error('National ID and password are required');
   }
-  
+
   // Validate that national ID is numeric
   if (!/^[0-9]+$/.test(nationalId)) {
     throw new Error('Invalid national ID format');
   }
-  
+
   // Extract last 6 digits of national ID as expected password
   const expectedPassword = nationalId.slice(-6);
-  
+
   console.log('Expected password:', expectedPassword);
   console.log('Provided password:', password);
-  
+
   // Check if provided password matches expected password
   if (password !== expectedPassword) {
     throw new Error('Invalid credentials');
   }
-  
+
   try {
     // Query users table in Supabase
     const { data, error } = await supabase
@@ -47,18 +47,18 @@ export const authenticateUser = async (nationalId, password) => {
       `)
       .eq('national_id', nationalId)
       .single();
-    
+
     if (error) {
       console.error('Error authenticating user:', error);
       throw new Error('Authentication failed');
     }
-    
+
     if (!data) {
       // User not found - return error instead of creating new user
       throw new Error('User not registered');
     } else {
       const user = data;
-      
+
       // Create a token (in a real app, you would use JWT)
       const token = Buffer.from(JSON.stringify({
         id: user.id,
@@ -67,7 +67,7 @@ export const authenticateUser = async (nationalId, password) => {
         role: user.role,
         warehouse_id: user.warehouse_id
       })).toString('base64');
-      
+
       return {
         token,
         user: {
@@ -90,12 +90,12 @@ export const getWarehouses = async () => {
   const { data, error } = await supabase
     .from('warehouses')
     .select('*');
-  
+
   if (error) {
     console.error('Error fetching warehouses:', error);
     throw new Error('Failed to fetch warehouses');
   }
-  
+
   return data;
 };
 
@@ -105,16 +105,16 @@ export const getWarehouseById = async (id) => {
     .select('*')
     .eq('id', id)
     .single();
-  
+
   if (error) {
     console.error('Error fetching warehouse:', error);
     throw new Error('Failed to fetch warehouse');
   }
-  
+
   if (!data) {
     throw new Error('Warehouse not found');
   }
-  
+
   return data;
 };
 
@@ -127,12 +127,12 @@ export const getWarehouseItems = async (id) => {
       warehouses:name
     `)
     .eq('warehouse_id', id);
-  
+
   if (error) {
     console.error('Error fetching warehouse items:', error);
     throw new Error('Failed to fetch warehouse items');
   }
-  
+
   return data;
 };
 
@@ -142,15 +142,15 @@ export const getWarehouseStats = async (id) => {
     .from('items')
     .select('quantity')
     .eq('warehouse_id', id);
-  
+
   if (itemsError) {
     console.error('Error fetching warehouse stats:', itemsError);
     throw new Error('Failed to fetch warehouse stats');
   }
-  
+
   const total_items = itemsData.length;
   const total_quantity = itemsData.reduce((sum, item) => sum + item.quantity, 0);
-  
+
   // Get category distribution
   const { data: categoryData, error: categoryError } = await supabase
     .from('items')
@@ -160,12 +160,12 @@ export const getWarehouseStats = async (id) => {
       categories (name)
     `)
     .eq('warehouse_id', id);
-  
+
   if (categoryError) {
     console.error('Error fetching category distribution:', categoryError);
     throw new Error('Failed to fetch category distribution');
   }
-  
+
   // Group by category
   const category_distribution = {};
   categoryData.forEach(item => {
@@ -180,7 +180,7 @@ export const getWarehouseStats = async (id) => {
     category_distribution[categoryName].item_count += 1;
     category_distribution[categoryName].total_quantity += item.quantity;
   });
-  
+
   return {
     total_items,
     total_quantity,
@@ -195,34 +195,34 @@ export const getUserByNationalId = async (nationalId) => {
     .select('*')
     .eq('national_id', nationalId)
     .single();
-  
+
   if (error) {
     console.error('Error fetching user:', error);
     throw new Error('Failed to fetch user');
   }
-  
+
   if (!data) {
     throw new Error('User not found');
   }
-  
+
   return data;
 };
 
 export const getAllUsers = async () => {
   console.log('Users endpoint called');
-  
+
   const { data, error } = await supabase
     .from('users')
     .select(`
       *,
       warehouses (name)
     `);
-  
+
   if (error) {
     console.error('Error fetching users:', error);
     throw new Error('Failed to fetch users');
   }
-  
+
   return data;
 };
 
@@ -237,12 +237,12 @@ export const createUser = async (userData) => {
     })
     .select()
     .single();
-  
+
   if (error) {
     console.error('Error creating user:', error);
     throw new Error('Failed to create user');
   }
-  
+
   return {
     ...data,
     message: 'User created successfully'
@@ -261,16 +261,16 @@ export const updateUser = async (id, userData) => {
     .eq('id', id)
     .select()
     .single();
-  
+
   if (error) {
     console.error('Error updating user:', error);
     throw new Error('Failed to update user');
   }
-  
+
   if (!data) {
     throw new Error('User not found');
   }
-  
+
   return { message: 'User updated successfully' };
 };
 
@@ -279,16 +279,16 @@ export const deleteUser = async (id) => {
     .from('users')
     .delete()
     .eq('id', id);
-  
+
   if (error) {
     console.error('Error deleting user:', error);
     throw new Error('Failed to delete user');
   }
-  
+
   if (data.length === 0) {
     throw new Error('User not found');
   }
-  
+
   return { message: 'User deleted successfully' };
 };
 
@@ -303,16 +303,16 @@ export const getItemById = async (id) => {
     `)
     .eq('id', id)
     .single();
-  
+
   if (error) {
     console.error('Error fetching item:', error);
     throw new Error('Failed to fetch item');
   }
-  
+
   if (!data) {
     throw new Error('Item not found');
   }
-  
+
   return data;
 };
 
@@ -325,12 +325,12 @@ export const getItemsByWarehouse = async (warehouseId) => {
       warehouses:name
     `)
     .eq('warehouse_id', warehouseId);
-  
+
   if (error) {
     console.error('Error fetching items:', error);
     throw new Error('Failed to fetch items');
   }
-  
+
   return data;
 };
 
@@ -341,16 +341,16 @@ export const updateItemQuantity = async (itemId, quantityChange) => {
     .select('quantity')
     .eq('id', itemId)
     .single();
-  
+
   if (itemError) {
     console.error('Error fetching item:', itemError);
     throw new Error('Failed to fetch item');
   }
-  
+
   if (!itemData) {
     throw new Error('Item not found');
   }
-  
+
   // Update the item quantity
   const { data, error } = await supabase
     .from('items')
@@ -360,16 +360,16 @@ export const updateItemQuantity = async (itemId, quantityChange) => {
     .eq('id', itemId)
     .select()
     .single();
-  
+
   if (error) {
     console.error('Error updating item quantity:', error);
     throw new Error('Failed to update item quantity');
   }
-  
+
   if (!data) {
     throw new Error('Item not found');
   }
-  
+
   return { message: 'Item quantity updated successfully' };
 };
 
@@ -382,12 +382,12 @@ export const getAllItems = async () => {
       warehouses:name
     `)
     .order('name');
-  
+
   if (error) {
     console.error('Error fetching items:', error);
     throw new Error('Failed to fetch items');
   }
-  
+
   return data;
 };
 
@@ -400,15 +400,15 @@ export const createTransaction = async (transactionData) => {
     const egyptTime = new Date(now.getTime() + (2 * 60 * 60 * 1000));
     return egyptTime.toISOString().slice(0, 19).replace('T', ' ');
   };
-  
+
   const egyptianTimestamp = getEgyptianTime();
-  
+
   // Calculate discrepancy if both expected and actual quantities are provided
   let discrepancy = null;
   if (transactionData.expected_quantity !== undefined && transactionData.actual_quantity !== undefined) {
     discrepancy = transactionData.actual_quantity - transactionData.expected_quantity;
   }
-  
+
   const { data, error } = await supabase
     .from('transactions')
     .insert({
@@ -425,12 +425,12 @@ export const createTransaction = async (transactionData) => {
     })
     .select()
     .single();
-  
+
   if (error) {
     console.error('Error creating transaction:', error);
     throw new Error('Failed to create transaction');
   }
-  
+
   return {
     ...data,
     message: 'Transaction created successfully'
@@ -441,7 +441,7 @@ export const createTransaction = async (transactionData) => {
 export const createDailyAudit = async (auditData) => {
   // Get audit date (today)
   const auditDate = new Date().toISOString().split('T')[0];
-  
+
   // Get Egyptian timestamp
   const getEgyptianTime = () => {
     const now = new Date();
@@ -449,12 +449,12 @@ export const createDailyAudit = async (auditData) => {
     const egyptTime = new Date(now.getTime() + (2 * 60 * 60 * 1000));
     return egyptTime.toISOString().slice(0, 19).replace('T', ' ');
   };
-  
+
   const egyptianTimestamp = getEgyptianTime();
-  
+
   // Calculate discrepancy
   const discrepancy = auditData.actual_quantity - auditData.expected_quantity;
-  
+
   const { data, error } = await supabase
     .from('daily_audits')
     .insert({
@@ -470,12 +470,12 @@ export const createDailyAudit = async (auditData) => {
     })
     .select()
     .single();
-  
+
   if (error) {
     console.error('Error creating daily audit:', error);
     throw new Error('Failed to create daily audit');
   }
-  
+
   return {
     ...data,
     message: 'Daily audit created successfully'
@@ -492,22 +492,22 @@ export const getDailyAudits = async (params = {}) => {
       users (name)
     `)
     .order('created_at', { ascending: false });
-  
+
   if (params.warehouseId) {
     query = query.eq('warehouse_id', params.warehouseId);
   }
-  
+
   if (params.itemId) {
     query = query.eq('item_id', params.itemId);
   }
-  
+
   const { data, error } = await query;
-  
+
   if (error) {
     console.error('Error fetching daily audits:', error);
     throw new Error('Failed to fetch daily audits');
   }
-  
+
   return data;
 };
 
@@ -521,12 +521,12 @@ export const getTransactions = async () => {
       warehouses (name)
     `)
     .order('created_at', { ascending: false });
-  
+
   if (error) {
     console.error('Error fetching transactions:', error);
     throw new Error('Failed to fetch transactions');
   }
-  
+
   return data;
 };
 
@@ -535,17 +535,20 @@ export const getTransactionsByWarehouse = async (warehouseId) => {
     .from('transactions')
     .select(`
       *,
-      items (name),
+      items!inner (
+        name,
+        warehouse_id
+      ),
       users (name)
     `)
-    .eq('warehouse_id', warehouseId)
+    .eq('items.warehouse_id', warehouseId)
     .order('created_at', { ascending: false });
-  
+
   if (error) {
     console.error('Error fetching transactions:', error);
     throw new Error('Failed to fetch transactions');
   }
-  
+
   return data;
 };
 
@@ -560,12 +563,12 @@ export const getLowInventoryItems = async (threshold = 10) => {
     `)
     .lte('quantity', threshold)
     .order('quantity', { ascending: true });
-  
+
   if (error) {
     console.error('Error fetching low inventory items:', error);
     throw new Error('Failed to fetch low inventory items');
   }
-  
+
   return data;
 };
 
@@ -579,12 +582,12 @@ export const createWarehouse = async (warehouseData) => {
     })
     .select()
     .single();
-  
+
   if (error) {
     console.error('Error creating warehouse:', error);
     throw new Error('Failed to create warehouse');
   }
-  
+
   return {
     ...data,
     message: 'Warehouse created successfully'
@@ -601,16 +604,16 @@ export const updateWarehouse = async (id, warehouseData) => {
     .eq('id', id)
     .select()
     .single();
-  
+
   if (error) {
     console.error('Error updating warehouse:', error);
     throw new Error('Failed to update warehouse');
   }
-  
+
   if (!data) {
     throw new Error('Warehouse not found');
   }
-  
+
   return { message: 'Warehouse updated successfully' };
 };
 
@@ -619,16 +622,16 @@ export const deleteWarehouse = async (id) => {
     .from('warehouses')
     .delete()
     .eq('id', id);
-  
+
   if (error) {
     console.error('Error deleting warehouse:', error);
     throw new Error('Failed to delete warehouse');
   }
-  
+
   if (data.length === 0) {
     throw new Error('Warehouse not found');
   }
-  
+
   return { message: 'Warehouse deleted successfully' };
 };
 
@@ -640,12 +643,12 @@ export const getCategories = async () => {
       *,
       warehouses (name)
     `);
-  
+
   if (error) {
     console.error('Error fetching categories:', error);
     throw new Error('Failed to fetch categories');
   }
-  
+
   return data;
 };
 
@@ -655,16 +658,16 @@ export const getCategoryById = async (id) => {
     .select('*')
     .eq('id', id)
     .single();
-  
+
   if (error) {
     console.error('Error fetching category:', error);
     throw new Error('Failed to fetch category');
   }
-  
+
   if (!data) {
     throw new Error('Category not found');
   }
-  
+
   return data;
 };
 
@@ -677,12 +680,12 @@ export const createCategory = async (categoryData) => {
     })
     .select()
     .single();
-  
+
   if (error) {
     console.error('Error creating category:', error);
     throw new Error('Failed to create category');
   }
-  
+
   return {
     ...data,
     message: 'Category created successfully'
@@ -699,16 +702,16 @@ export const updateCategory = async (id, categoryData) => {
     .eq('id', id)
     .select()
     .single();
-  
+
   if (error) {
     console.error('Error updating category:', error);
     throw new Error('Failed to update category');
   }
-  
+
   if (!data) {
     throw new Error('Category not found');
   }
-  
+
   return { message: 'Category updated successfully' };
 };
 
@@ -717,16 +720,16 @@ export const deleteCategory = async (id) => {
     .from('categories')
     .delete()
     .eq('id', id);
-  
+
   if (error) {
     console.error('Error deleting category:', error);
     throw new Error('Failed to delete category');
   }
-  
+
   if (data.length === 0) {
     throw new Error('Category not found');
   }
-  
+
   return { message: 'Category deleted successfully' };
 };
 
@@ -743,12 +746,12 @@ export const createItem = async (itemData) => {
     })
     .select()
     .single();
-  
+
   if (error) {
     console.error('Error creating item:', error);
     throw new Error('Failed to create item');
   }
-  
+
   return {
     ...data,
     message: 'Item created successfully'
@@ -768,16 +771,16 @@ export const updateItem = async (id, itemData) => {
     .eq('id', id)
     .select()
     .single();
-  
+
   if (error) {
     console.error('Error updating item:', error);
     throw new Error('Failed to update item');
   }
-  
+
   if (!data) {
     throw new Error('Item not found');
   }
-  
+
   return { message: 'Item updated successfully' };
 };
 
@@ -786,15 +789,15 @@ export const deleteItem = async (id) => {
     .from('items')
     .delete()
     .eq('id', id);
-  
+
   if (error) {
     console.error('Error deleting item:', error);
     throw new Error('Failed to delete item');
   }
-  
+
   if (data.length === 0) {
     throw new Error('Item not found');
   }
-  
+
   return { message: 'Item deleted successfully' };
 };

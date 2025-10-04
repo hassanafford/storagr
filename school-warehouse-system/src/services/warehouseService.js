@@ -10,6 +10,9 @@ export const getAllWarehouses = async () => {
   }
 };
 
+// Alias for compatibility
+export const getAllWarehousesService = getAllWarehouses;
+
 export const getWarehouseByIdService = async (id) => {
   try {
     const data = await getWarehouseById(id);
@@ -45,11 +48,11 @@ export const createWarehouseService = async (warehouseData) => {
   if (!warehouseData.name || warehouseData.name.trim() === '') {
     throw new Error('اسم المخزن مطلوب');
   }
-  
+
   if (warehouseData.name.length < 3) {
     throw new Error('اسم المخزن يجب أن يكون على الأقل 3 أحرف');
   }
-  
+
   try {
     const data = await createWarehouse(warehouseData);
     return data;
@@ -64,11 +67,11 @@ export const updateWarehouseService = async (id, warehouseData) => {
   if (!warehouseData.name || warehouseData.name.trim() === '') {
     throw new Error('اسم المخزن مطلوب');
   }
-  
+
   if (warehouseData.name.length < 3) {
     throw new Error('اسم المخزن يجب أن يكون على الأقل 3 أحرف');
   }
-  
+
   try {
     const data = await updateWarehouse(id, warehouseData);
     return data;

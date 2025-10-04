@@ -11,7 +11,7 @@ import {
   createTransactionService,
   getTransactionsByWarehouseService
 } from '../services/itemService';
-import { initNotificationWebSocket, disconnectWebSocket } from '../services/websocketService';
+import { subscribeToInventoryUpdates, subscribeToTransactions, unsubscribeAll } from '../services/realtimeService';
 import { getCurrentUser } from '../services/userService';
 
 function WarehouseDetailPage() {
@@ -73,27 +73,21 @@ function WarehouseDetailPage() {
 
     loadWarehouseData();
 
-    // Initialize WebSocket connection for real-time updates
-    try {
-      initNotificationWebSocket((notification) => {
-        // When we receive a notification, reload the data
-        loadWarehouseData();
-
-        // Show notification to user
-        addNotification({
-          message: notification.message,
-          details: notification.details,
-          quantity: notification.quantity,
-          type: notification.type
-        });
+    const inventorySub = subscribeToInventoryUpdates((data) => {
+      loadWarehouseData();
+      addNotification({
+        message: `تم تحديث المخزون: ${data.item?.name || 'عنصر'}`,
+        type: 'info'
       });
-    } catch (error) {
-      console.error('Failed to initialize WebSocket:', error);
-    }
+    }, parseInt(id));
 
-    // Clean up WebSocket connection on unmount
+    const transactionsSub = subscribeToTransactions((transaction) => {
+      loadWarehouseData();
+    });
+
     return () => {
-      disconnectWebSocket();
+      inventorySub.unsubscribe();
+      transactionsSub.unsubscribe();
     };
   }, [id]);
 

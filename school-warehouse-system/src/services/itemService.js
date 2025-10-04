@@ -70,6 +70,9 @@ export const getTransactionsByWarehouseService = async (warehouseId) => {
   }
 };
 
+// Alias for compatibility
+export { getTransactionsByWarehouseService as getTransactionsByWarehouse };
+
 export const getLowInventoryItemsService = async (threshold = 10) => {
   try {
     const data = await getLowInventoryItems(threshold);
@@ -85,23 +88,23 @@ export const createItemService = async (itemData) => {
   if (!itemData.name || itemData.name.trim() === '') {
     throw new Error('اسم العنصر مطلوب');
   }
-  
+
   if (itemData.name.length < 3) {
     throw new Error('اسم العنصر يجب أن يكون على الأقل 3 أحرف');
   }
-  
+
   if (!itemData.category_id) {
     throw new Error('الفئة مطلوبة');
   }
-  
+
   if (!itemData.warehouse_id) {
     throw new Error('المخزن مطلوب');
   }
-  
+
   if (itemData.quantity < 0) {
     throw new Error('الكمية لا يمكن أن تكون سالبة');
   }
-  
+
   try {
     const data = await createItem(itemData);
     return data;
@@ -116,23 +119,23 @@ export const updateItemService = async (id, itemData) => {
   if (!itemData.name || itemData.name.trim() === '') {
     throw new Error('اسم العنصر مطلوب');
   }
-  
+
   if (itemData.name.length < 3) {
     throw new Error('اسم العنصر يجب أن يكون على الأقل 3 أحرف');
   }
-  
+
   if (!itemData.category_id) {
     throw new Error('الفئة مطلوبة');
   }
-  
+
   if (!itemData.warehouse_id) {
     throw new Error('المخزن مطلوب');
   }
-  
+
   if (itemData.quantity < 0) {
     throw new Error('الكمية لا يمكن أن تكون سالبة');
   }
-  
+
   try {
     const data = await updateItem(id, itemData);
     return data;
@@ -168,8 +171,8 @@ export const searchItemsService = async (query) => {
     // We need to implement this properly
     const data = await getAllItems();
     // Filter items based on query
-    return data.filter(item => 
-      item.name.includes(query) || 
+    return data.filter(item =>
+      item.name.includes(query) ||
       (item.category_name && item.category_name.includes(query))
     );
   } catch (error) {

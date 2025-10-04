@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { subscribeToNotifications, subscribeToBroadcast, unsubscribeAll } from '../services/realtimeService';
 
 const NotificationContext = createContext();
 
@@ -13,10 +14,39 @@ export const useNotification = () => {
 export const NotificationProvider = ({ children }) => {
   const [notifications, setNotifications] = useState([]);
 
+  // الاستماع للإشعارات الفورية من Supabase
+  useEffect(() => {
+    // الحصول على معلومات المستخدم الحالي
+    const userStr = localStorage.getItem('user');
+    if (!userStr) return;
+
+    const user = JSON.parse(userStr);
+
+    // الاستماع للإشعارات من جدول notifications
+    const notificationSub = subscribeToNotifications((notification) => {
+      addNotification({
+        type: notification.type || 'info',
+        message: notification.message,
+        details: notification.details?.message || null
+      });
+    }, user.id);
+
+    // الاستماع للـ broadcast notifications (للإشعارات العامة)
+    const broadcastSub = subscribeToBroadcast('notifications', 'notification', (payload) => {
+      addNotification(payload);
+    });
+
+    // تنظيف الاشتراكات عند إلغاء التحميل
+    return () => {
+      notificationSub.unsubscribe();
+      broadcastSub.unsubscribe();
+    };
+  }, []);
+
   const addNotification = (notification) => {
     const id = Date.now() + Math.random();
     setNotifications(prev => [...prev, { ...notification, id }]);
-    
+
     // Auto remove notification after 5 seconds
     setTimeout(() => {
       removeNotification(id);
@@ -34,15 +64,14 @@ export const NotificationProvider = ({ children }) => {
         {notifications.map((notification) => (
           <div
             key={notification.id}
-            className={`p-4 rounded-lg shadow-lg flex items-start max-w-md ${
-              notification.type === 'success' 
-                ? 'bg-green-100 border border-green-200 text-green-800' 
-                : notification.type === 'error' 
-                ? 'bg-red-100 border border-red-200 text-red-800' 
-                : notification.type === 'warning' 
-                ? 'bg-yellow-100 border border-yellow-200 text-yellow-800' 
-                : 'bg-blue-100 border border-blue-200 text-blue-800'
-            }`}
+            className={`p-4 rounded-lg shadow-lg flex items-start max-w-md ${notification.type === 'success'
+                ? 'bg-green-100 border border-green-200 text-green-800'
+                : notification.type === 'error'
+                  ? 'bg-red-100 border border-red-200 text-red-800'
+                  : notification.type === 'warning'
+                    ? 'bg-yellow-100 border border-yellow-200 text-yellow-800'
+                    : 'bg-blue-100 border border-blue-200 text-blue-800'
+              }`}
           >
             <div className="mr-2 mt-0.5">
               {notification.type === 'success' ? (
@@ -72,7 +101,7 @@ export const NotificationProvider = ({ children }) => {
                 <p className="text-xs mt-1">الكمية: {Math.abs(notification.quantity)}</p>
               )}
             </div>
-            <button 
+            <button
               onClick={() => removeNotification(notification.id)}
               className="text-gray-400 hover:text-gray-600 ml-2"
             >
