@@ -64,14 +64,14 @@ export const authenticateUser = async (nationalId, password) => {
 
     const user = data;
 
-    // Create a token (in a real app, you would use JWT)
-    const token = Buffer.from(JSON.stringify({
+    // Create a token using btoa (browser-compatible base64 encoding)
+    const token = btoa(JSON.stringify({
       id: user.id,
       national_id: user.national_id,
       name: user.name,
       role: user.role,
       warehouse_id: user.warehouse_id
-    })).toString('base64');
+    }));
 
     return {
       token,
