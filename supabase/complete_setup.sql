@@ -30,13 +30,7 @@ DROP VIEW IF EXISTS items_full_view CASCADE;
 DROP VIEW IF EXISTS transactions_full_view CASCADE;
 DROP VIEW IF EXISTS low_stock_items_view CASCADE;
 
--- حذف الـ Triggers القديمة
-DROP TRIGGER IF EXISTS update_warehouses_updated_at ON warehouses;
-DROP TRIGGER IF EXISTS update_categories_updated_at ON categories;
-DROP TRIGGER IF EXISTS update_users_updated_at ON users;
-DROP TRIGGER IF EXISTS update_items_updated_at ON items;
-DROP TRIGGER IF EXISTS trigger_check_low_stock ON items;
-DROP TRIGGER IF EXISTS trigger_log_quantity_change ON items;
+-- حذف الـ Triggers القديمة (تم التجاوز لأن DROP TABLE سيزيلها تلقائياً، مما يمنع أخطاء الجداول غير الموجودة)
 
 -- حذف الـ Functions القديمة
 DROP FUNCTION IF EXISTS get_egyptian_time() CASCADE;
