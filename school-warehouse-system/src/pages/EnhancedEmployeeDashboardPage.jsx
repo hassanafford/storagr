@@ -1,23 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { 
-  Package, 
-  TrendingUp, 
-  TrendingDown, 
-  FileText, 
-  Calendar,
-  AlertTriangle,
-  CheckCircle
-} from 'lucide-react';
+import { Package, TrendingUp, FileText, TrendingDown, RefreshCw, CheckCircle, Building, AlertTriangle, BarChart3 } from 'lucide-react';
+import { getWarehouseByIdService, getWarehouseStatsService } from '../services/warehouseService';
+import { getTransactionsByWarehouseService, updateItemQuantityService, createTransactionService, getItemsByWarehouseService } from '../services/itemService';
 import { useNotification } from '../components/NotificationProvider';
-import { getWarehouseByIdService, getWarehouseItemsService, getWarehouseStatsService } from '../services/warehouseService';
-import { getTransactionsByWarehouseService } from '../services/itemService';
-import DailyAudit from '../components/DailyAudit';
 import TransactionForms from '../components/TransactionForms';
+import DailyAudit from '../components/DailyAudit';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
+import { Button } from '../components/ui/button';
+import { Badge } from '../components/ui/badge';
+import { formatEgyptianDateTime, getEgyptianTime } from '../lib/timeUtils';
 
 const EnhancedEmployeeDashboardPage = ({ user }) => {
   const { addNotification } = useNotification();
@@ -39,7 +32,7 @@ const EnhancedEmployeeDashboardPage = ({ user }) => {
         setWarehouse(warehouseData);
         
         // Load items for this warehouse
-        const itemsData = await getWarehouseItemsService(user.warehouse_id);
+        const itemsData = await getItemsByWarehouseService(user.warehouse_id);
         setItems(itemsData);
         
         // Load warehouse stats
@@ -73,7 +66,7 @@ const EnhancedEmployeeDashboardPage = ({ user }) => {
       setWarehouse(warehouseData);
       
       // Load items for this warehouse
-      const itemsData = await getWarehouseItemsService(user.warehouse_id);
+      const itemsData = await getItemsByWarehouseService(user.warehouse_id);
       setItems(itemsData);
       
       // Load warehouse stats
@@ -91,7 +84,7 @@ const EnhancedEmployeeDashboardPage = ({ user }) => {
   // Format time ago in Arabic
   const formatTimeAgo = (dateString) => {
     const date = new Date(dateString);
-    const now = new Date();
+    const now = getEgyptianTime();
     const diffInMinutes = Math.floor((now - date) / (1000 * 60));
     
     if (diffInMinutes < 1) return 'الآن';
@@ -103,12 +96,11 @@ const EnhancedEmployeeDashboardPage = ({ user }) => {
   // Get transaction type label
   const getTransactionTypeLabel = (type) => {
     switch (type) {
-      case 'issue': return 'صرف';
-      case 'return': return 'إرجاع';
-      case 'exchange_out': return 'صرف (تبديل)';
-      case 'exchange_in': return 'استلام (تبديل)';
-      case 'audit_adjustment': return 'تعديل جرد';
-      case 'daily_audit': return 'جرد يومي';
+      case 'out': return 'صرف';
+      case 'in': return 'إرجاع';
+      case 'adjustment': return 'تعديل';
+      case 'audit': return 'جرد';
+      case 'transfer': return 'تحويل';
       default: return 'معاملة';
     }
   };
@@ -116,12 +108,11 @@ const EnhancedEmployeeDashboardPage = ({ user }) => {
   // Get transaction type color
   const getTransactionTypeColor = (type) => {
     switch (type) {
-      case 'issue': return 'text-red-600';
-      case 'return': return 'text-green-600';
-      case 'exchange_out': return 'text-purple-600';
-      case 'exchange_in': return 'text-blue-600';
-      case 'audit_adjustment': return 'text-yellow-600';
-      case 'daily_audit': return 'text-indigo-600';
+      case 'out': return 'text-red-600';
+      case 'in': return 'text-green-600';
+      case 'adjustment': return 'text-yellow-600';
+      case 'audit': return 'text-indigo-600';
+      case 'transfer': return 'text-purple-600';
       default: return 'text-gray-600';
     }
   };
@@ -271,15 +262,16 @@ const EnhancedEmployeeDashboardPage = ({ user }) => {
                       transactions.slice(0, 10).map((transaction) => (
                         <div key={transaction.id} className="flex items-start border-b border-gray-200 pb-3 last:border-0 last:pb-0">
                           <div className={`p-2 rounded-lg mr-3 ${
-                            transaction.transaction_type === 'issue' ? 'bg-red-100' : 
-                            transaction.transaction_type === 'return' ? 'bg-green-100' : 
-                            transaction.transaction_type.includes('exchange') ? 'bg-purple-100' : 
+                            transaction.transaction_type === 'out' ? 'bg-red-100' : 
+                            transaction.transaction_type === 'in' ? 'bg-green-100' : 
                             'bg-blue-100'
                           }`}>
-                            {transaction.transaction_type === 'issue' && <TrendingDown className="h-5 w-5 text-red-600" />}
-                            {transaction.transaction_type === 'return' && <TrendingUp className="h-5 w-5 text-green-600" />}
-                            {transaction.transaction_type.includes('exchange') && <FileText className="h-5 w-5 text-purple-600" />}
-                            {transaction.transaction_type.includes('audit') && <CheckCircle className="h-5 w-5 text-blue-600" />}
+                            {transaction.transaction_type === 'out' && <TrendingDown className="h-5 w-5 text-red-600" />}
+                            {transaction.transaction_type === 'in' && <TrendingUp className="h-5 w-5 text-green-600" />}
+                            {transaction.transaction_type === 'adjustment' && <FileText className="h-5 w-5 text-purple-600" />}
+                            {transaction.transaction_type === 'audit' && <CheckCircle className="h-5 w-5 text-blue-600" />}
+                            {transaction.transaction_type === 'transfer' && <FileText className="h-5 w-5 text-purple-600" />}
+
                           </div>
                           <div className="flex-1">
                             <p className="font-medium text-gray-800">

@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Package, TrendingUp, TrendingDown, Minus, AlertCircle, Clock, User } from 'lucide-react';
 import { getTransactionsByWarehouse } from '../services/itemService';
+import { formatTimeAgo } from '../lib/timeUtils';
 
 const EnhancedWarehouseCard = ({ warehouse, onClick, transactions = [] }) => {
   const [warehouseTransactions, setWarehouseTransactions] = useState([]);
@@ -55,14 +56,7 @@ const EnhancedWarehouseCard = ({ warehouse, onClick, transactions = [] }) => {
 
   // Format time ago in Arabic
   const formatTimeAgo = (dateString) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffInMinutes = Math.floor((now - date) / (1000 * 60));
-    
-    if (diffInMinutes < 1) return 'الآن';
-    if (diffInMinutes < 60) return `منذ ${diffInMinutes} دقيقة`;
-    if (diffInMinutes < 1440) return `منذ ${Math.floor(diffInMinutes / 60)} ساعة`;
-    return `منذ ${Math.floor(diffInMinutes / 1440)} يوم`;
+    return formatTimeAgo(dateString);
   };
 
   // Get transaction type label

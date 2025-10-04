@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Routes, Route, useNavigate, NavLink, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
+import { createClient } from '@supabase/supabase-js';
 import { useNotification } from './components/NotificationProvider';
+import { getEgyptianTime } from './lib/timeUtils';
 import { authenticateUserService, getCurrentUser, logoutUser } from './services/userService';
 import { getAllWarehousesService, getWarehouseByIdService } from './services/warehouseService';
 import { getItemsByWarehouseService, updateItemQuantityService, createTransactionService, getTransactionsService, getLowInventoryItemsService } from './services/itemService';
@@ -530,7 +532,9 @@ function IssueItemsForm({ addNotification, user, warehouse }) {
       
       addNotification({
         message: 'تم صرف العنصر بنجاح!',
-        type: 'success'
+        type: 'success',
+        quantity: -quantity,
+        timestamp: getEgyptianTime().toISOString()
       });
       
       // Reset form
@@ -688,7 +692,9 @@ function ReturnItemsForm({ addNotification, user, warehouse }) {
       
       addNotification({
         message: 'تم إرجاع العنصر بنجاح!',
-        type: 'success'
+        type: 'success',
+        quantity: quantity,
+        timestamp: getEgyptianTime().toISOString()
       });
       
       // Reset form
@@ -869,7 +875,8 @@ function ExchangeItemsForm({ addNotification, user, warehouse }) {
       
       addNotification({
         message: 'تم تبديل العناصر بنجاح!',
-        type: 'success'
+        type: 'success',
+        timestamp: getEgyptianTime().toISOString()
       });
       
       // Reset form

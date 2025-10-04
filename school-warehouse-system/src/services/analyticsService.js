@@ -86,9 +86,11 @@ class AnalyticsService {
 
   calculateTransactionTypes(transactions) {
     const transactionTypeMap = {
-      'صرف': transactions.filter(t => t.transaction_type === 'issue').length,
-      'إرجاع': transactions.filter(t => t.transaction_type === 'return').length,
-      'تبديل': transactions.filter(t => t.transaction_type.includes('exchange')).length
+      'صرف': transactions.filter(t => t.transaction_type === 'out').length,
+      'إرجاع': transactions.filter(t => t.transaction_type === 'in').length,
+      'تعديل': transactions.filter(t => t.transaction_type === 'adjustment').length,
+      'جرد': transactions.filter(t => t.transaction_type === 'audit').length,
+      'تحويل': transactions.filter(t => t.transaction_type === 'transfer').length
     };
     
     return Object.entries(transactionTypeMap)

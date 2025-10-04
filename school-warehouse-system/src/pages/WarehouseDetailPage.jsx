@@ -1,18 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
+import { getWarehouseByIdService, getWarehouseItemsService } from '../services/warehouseService';
+import { getTransactionsByWarehouseService, updateItemQuantityService, createTransactionService } from '../services/itemService';
 import { useNotification } from '../components/NotificationProvider';
-import { getWarehouseByIdService } from '../services/warehouseService';
-import {
-  getItemsByWarehouseService,
-  createItemService,
-  updateItemService,
-  deleteItemService,
-  updateItemQuantityService,
-  createTransactionService,
-  getTransactionsByWarehouseService
-} from '../services/itemService';
-import { subscribeToInventoryUpdates, subscribeToTransactions, unsubscribeAll } from '../services/realtimeService';
-import { getCurrentUser } from '../services/userService';
+import { getEgyptianTime } from '../lib/timeUtils';
 
 function WarehouseDetailPage() {
   const { id } = useParams();
@@ -402,7 +393,7 @@ function WarehouseDetailPage() {
 
   const formatTimeAgo = (dateString) => {
     const date = new Date(dateString);
-    const now = new Date();
+    const now = getEgyptianTime();
     const diffInMinutes = Math.floor((now - date) / (1000 * 60));
 
     if (diffInMinutes < 1) return 'الآن';
@@ -605,7 +596,7 @@ function WarehouseDetailPage() {
                       <option value="3">أدوات تنظيف</option>
                       <option value="4">مستلزمات المكتب</option>
                       <option value="5">معدات مختبر كيمياء</option>
-                      <option value="6">معدات مختبر فيزياء</option>
+                      <option value="6"> equipos مختبر فيزياء</option>
                       <option value="7"> equipos مختبر بيولوجيا</option>
                       <option value="8">كتب دراسية</option>
                       <option value="9">كتب مرجعية</option>
@@ -1053,17 +1044,11 @@ function WarehouseDetailPage() {
                 {transactions.map((transaction) => (
                   <tr key={transaction.id}>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {transaction.transaction_type === 'issue' && 'صرف'}
-                      {transaction.transaction_type === 'return' && 'إرجاع'}
-                      {transaction.transaction_type === 'exchange_out' && 'صرف (تبديل)'}
-                      {transaction.transaction_type === 'exchange_in' && 'استلام (تبديل)'}
+                      {transaction.transaction_type === 'out' && 'صرف'}
+                      {transaction.transaction_type === 'in' && 'إرجاع'}
                       {transaction.transaction_type === 'adjustment' && 'تعديل'}
-                      {transaction.transaction_type === 'issue' && 'صرف'}
-                      {transaction.transaction_type === 'return' && 'إرجاع'}
-                      {transaction.transaction_type === 'exchange_out' && 'صرف (تبديل)'}
-                      {transaction.transaction_type === 'exchange_in' && 'استلام (تبديل)'}
-                      {transaction.transaction_type === 'adjustment' && 'تعديل'}
-                      {transaction.transaction_type === 'audit_adjustment' && 'جرد'}
+                      {transaction.transaction_type === 'audit' && 'جرد'}
+                      {transaction.transaction_type === 'transfer' && 'تحويل'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{transaction.item_name}</td>
                     <td className={`px-6 py-4 whitespace-nowrap text-sm ${transaction.quantity < 0 ? 'text-red-600' : 'text-green-600'
@@ -1071,7 +1056,7 @@ function WarehouseDetailPage() {
                       {transaction.quantity > 0 ? '+' : ''}{transaction.quantity}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {transaction.transaction_type === 'return' ? transaction.recipient : transaction.recipient}
+                      {transaction.recipient}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{transaction.user_name}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatTimeAgo(transaction.created_at)}</td>
@@ -1090,12 +1075,11 @@ function WarehouseDetailPage() {
                     <div className="grid grid-cols-2 gap-2">
                       <div className="font-medium text-gray-700">النوع:</div>
                       <div className="text-gray-900">
-                        {transaction.transaction_type === 'issue' && 'صرف'}
-                        {transaction.transaction_type === 'return' && 'إرجاع'}
-                        {transaction.transaction_type === 'exchange_out' && 'صرف (تبديل)'}
-                        {transaction.transaction_type === 'exchange_in' && 'استلام (تبديل)'}
+                        {transaction.transaction_type === 'out' && 'صرف'}
+                        {transaction.transaction_type === 'in' && 'إرجاع'}
                         {transaction.transaction_type === 'adjustment' && 'تعديل'}
-                        {transaction.transaction_type === 'audit_adjustment' && 'جرد'}
+                        {transaction.transaction_type === 'audit' && 'جرد'}
+                        {transaction.transaction_type === 'transfer' && 'تحويل'}
                       </div>
 
                       <div className="font-medium text-gray-700">العنصر:</div>

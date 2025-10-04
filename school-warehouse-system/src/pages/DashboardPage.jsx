@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { useNotification } from '../components/NotificationProvider';
-import { getAllWarehouses } from '../services/warehouseService';
-import { getItemsByWarehouseService, getTransactionsService, getLowInventoryItemsService } from '../services/itemService';
-import ProfessionalWarehouseChart from '../components/ProfessionalWarehouseChart';
 import { useNavigate } from 'react-router-dom';
-// Old AdminDashboard import removed to avoid conflicts
-import EnhancedWarehouseCard from '../components/EnhancedWarehouseCard';
-import { FileText, Plus, BarChart3, PieChart, AlertTriangle, TrendingUp, TrendingDown, Minus } from 'lucide-react';
-import analyticsService from '../services/analyticsService';
-import DashboardPieChart from '../components/DashboardPieChart';
+import { BarChart3, PieChart, FileText, Plus, TrendingUp, AlertTriangle, User, Calendar, Package, TrendingDown, Minus } from 'lucide-react';
+import { useNotification } from '../components/NotificationProvider';
+import { getAllWarehousesService, getWarehouseItemsService } from '../services/warehouseService';
+import { getAllItemsService, getTransactionsService, getLowInventoryItemsService, getItemsByWarehouseService } from '../services/itemService';
+import { getWarehouseStatsService } from '../services/warehouseService';
+import { formatTimeAgo, formatEgyptianDateTime } from '../lib/timeUtils';
 import AdminTransactionOperations from '../components/AdminTransactionOperations';
+import EnhancedWarehouseCard from '../components/EnhancedWarehouseCard';
+import DashboardPieChart from '../components/DashboardPieChart';
+import analyticsService from '../services/analyticsService';
 
 function DashboardPage({ user }) {
   const { addNotification } = useNotification();
@@ -34,7 +34,7 @@ function DashboardPage({ user }) {
     const loadWarehouses = async () => {
       try {
         console.log('Loading warehouses...');
-        const data = await getAllWarehouses();
+        const data = await getAllWarehousesService();
         console.log('Warehouses loaded:', data.length);
         setWarehouses(data);
       } catch (error) {
@@ -116,11 +116,11 @@ function DashboardPage({ user }) {
           let title = 'تم صرف عناصر';
           let icon = <TrendingDown className="h-5 w-5 text-blue-600" />;
           
-          if (transaction.transaction_type === 'return') {
+          if (transaction.transaction_type === 'in') {
             type = 'add';
             title = 'تم إرجاع عناصر';
             icon = <TrendingUp className="h-5 w-5 text-teal-600" />;
-          } else if (transaction.transaction_type === 'exchange_out' || transaction.transaction_type === 'exchange_in') {
+          } else if (transaction.transaction_type === 'out') {
             type = 'exchange';
             title = 'تم تبديل عناصر';
             icon = <Minus className="h-5 w-5 text-purple-600" />;
@@ -225,11 +225,11 @@ function DashboardPage({ user }) {
             let title = 'تم صرف عناصر';
             let icon = <TrendingDown className="h-5 w-5 text-blue-600" />;
             
-            if (transaction.transaction_type === 'return') {
+            if (transaction.transaction_type === 'in') {
               type = 'add';
               title = 'تم إرجاع عناصر';
               icon = <TrendingUp className="h-5 w-5 text-teal-600" />;
-            } else if (transaction.transaction_type === 'exchange_out' || transaction.transaction_type === 'exchange_in') {
+            } else if (transaction.transaction_type === 'out') {
               type = 'exchange';
               title = 'تم تبديل عناصر';
               icon = <Minus className="h-5 w-5 text-purple-600" />;
@@ -285,14 +285,7 @@ function DashboardPage({ user }) {
   }, [warehouses, lowInventoryItems]);
 
   const formatTimeAgo = (dateString) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffInMinutes = Math.floor((now - date) / (1000 * 60));
-    
-    if (diffInMinutes < 1) return 'الآن';
-    if (diffInMinutes < 60) return `منذ ${diffInMinutes} دقيقة`;
-    if (diffInMinutes < 1440) return `منذ ${Math.floor(diffInMinutes / 60)} ساعة`;
-    return `منذ ${Math.floor(diffInMinutes / 1440)} يوم`;
+    return formatTimeAgo(dateString);
   };
 
   const handleTransactionComplete = () => {

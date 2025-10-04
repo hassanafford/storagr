@@ -1,24 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { useNotification } from '../components/NotificationProvider';
-import { getTransactionsService, getTransactionsByDateRangeService } from '../services/itemService';
-import { getAllWarehouses } from '../services/warehouseService';
-import { getLowInventoryItemsService } from '../services/itemService';
-import { getDailyAuditsService } from '../services/auditService';
+import { useNavigate } from 'react-router-dom';
+import { BarChart3, PieChart, FileText, Plus, TrendingUp, AlertTriangle, User, Calendar, Package, TrendingDown, Minus, Search } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { 
-  FileText, 
-  TrendingUp, 
-  TrendingDown, 
-  AlertTriangle, 
-  Calendar,
-  Package,
-  User,
-  BarChart3
-} from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useNotification } from '../components/NotificationProvider';
+import { getAllWarehousesService } from '../services/warehouseService';
+import { getTransactionsService, getLowInventoryItemsService } from '../services/itemService';
+import { getDailyAuditsService } from '../services/auditService';
+import { formatTimeAgo, formatEgyptianDateTime, formatEgyptianDate } from '../lib/timeUtils';
 import EnhancedBarChart from '../components/EnhancedBarChart';
 import EnhancedPieChart from '../components/EnhancedPieChart';
 
@@ -68,7 +60,7 @@ const EnhancedReportsPage = () => {
 
   const loadWarehouses = async () => {
     try {
-      const data = await getAllWarehouses();
+      const data = await getAllWarehousesService();
       setWarehouses(data);
     } catch (error) {
       console.error('Error loading warehouses:', error);
@@ -211,19 +203,11 @@ const EnhancedReportsPage = () => {
   };
 
   const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('ar-SA');
+    return formatEgyptianDate(dateString);
   };
 
   const formatTimeAgo = (dateString) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffInMinutes = Math.floor((now - date) / (1000 * 60));
-    
-    if (diffInMinutes < 1) return 'الآن';
-    if (diffInMinutes < 60) return `منذ ${diffInMinutes} دقيقة`;
-    if (diffInMinutes < 1440) return `منذ ${Math.floor(diffInMinutes / 60)} ساعة`;
-    return `منذ ${Math.floor(diffInMinutes / 1440)} يوم`;
+    return formatTimeAgo(dateString);
   };
 
   const getTransactionTypeColor = (type) => {

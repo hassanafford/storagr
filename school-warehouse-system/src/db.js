@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { mapAppToDbTransactionType } from './lib/transactionUtils';
+import { getEgyptianTime, formatForDatabase } from './lib/timeUtils';
 
 // Supabase configuration - Fixed for Vite environment variables
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://oselaoheeykmsvkvrfwa.supabase.co';
@@ -402,15 +403,8 @@ export const getAllItems = async () => {
 
 // Transaction functions
 export const createTransaction = async (transactionData) => {
-  // Get Egyptian timestamp
-  const getEgyptianTime = () => {
-    const now = new Date();
-    // Egypt is UTC+2
-    const egyptTime = new Date(now.getTime() + (2 * 60 * 60 * 1000));
-    return egyptTime.toISOString().slice(0, 19).replace('T', ' ');
-  };
-
-  const egyptianTimestamp = getEgyptianTime();
+  // Get Egyptian timestamp using the new utility
+  const egyptianTimestamp = formatForDatabase();
 
   // Calculate discrepancy if both expected and actual quantities are provided
   let discrepancy = null;
@@ -449,20 +443,62 @@ export const createTransaction = async (transactionData) => {
   };
 };
 
+export const getTransactions = async () => {
+  const { data, error } = await supabase
+    .from('transactions')
+    .select(`
+      *,
+      items!inner (
+        name,
+        warehouse_id,
+        warehouses (name)
+      ),
+      users!inner (
+        name
+      )
+    `)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching transactions:', error);
+    throw new Error('Failed to fetch transactions');
+  }
+
+  return data;
+};
+
+export const getTransactionsByWarehouse = async (warehouseId) => {
+  const { data, error } = await supabase
+    .from('transactions')
+    .select(`
+      *,
+      items!inner (
+        name,
+        warehouse_id,
+        warehouses (name)
+      ),
+      users!inner (
+        name
+      )
+    `)
+    .eq('items.warehouse_id', warehouseId)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching transactions:', error);
+    throw new Error('Failed to fetch transactions');
+  }
+
+  return data;
+};
+
 // Daily audit functions
 export const createDailyAudit = async (auditData) => {
-  // Get audit date (today)
-  const auditDate = new Date().toISOString().split('T')[0];
+  // Get audit date (today) using the new utility
+  const auditDate = getEgyptianTime().toISOString().split('T')[0];
 
-  // Get Egyptian timestamp
-  const getEgyptianTime = () => {
-    const now = new Date();
-    // Egypt is UTC+2
-    const egyptTime = new Date(now.getTime() + (2 * 60 * 60 * 1000));
-    return egyptTime.toISOString().slice(0, 19).replace('T', ' ');
-  };
-
-  const egyptianTimestamp = getEgyptianTime();
+  // Get Egyptian timestamp using the new utility
+  const egyptianTimestamp = formatForDatabase();
 
   // Calculate discrepancy
   const discrepancy = auditData.actual_quantity - auditData.expected_quantity;
@@ -518,49 +554,6 @@ export const getDailyAudits = async (params = {}) => {
   if (error) {
     console.error('Error fetching daily audits:', error);
     throw new Error('Failed to fetch daily audits');
-  }
-
-  return data;
-};
-
-export const getTransactions = async () => {
-  const { data, error } = await supabase
-    .from('transactions')
-    .select(`
-      *,
-      items!inner (
-        name,
-        warehouses (name)
-      ),
-      users (name)
-    `)
-    .order('created_at', { ascending: false });
-
-  if (error) {
-    console.error('Error fetching transactions:', error);
-    throw new Error('Failed to fetch transactions');
-  }
-
-  return data;
-};
-
-export const getTransactionsByWarehouse = async (warehouseId) => {
-  const { data, error } = await supabase
-    .from('transactions')
-    .select(`
-      *,
-      items!inner (
-        name,
-        warehouse_id
-      ),
-      users (name)
-    `)
-    .eq('items.warehouse_id', warehouseId)
-    .order('created_at', { ascending: false });
-
-  if (error) {
-    console.error('Error fetching transactions:', error);
-    throw new Error('Failed to fetch transactions');
   }
 
   return data;

@@ -3,6 +3,7 @@ import { getAllWarehouses } from '../services/warehouseService';
 import { getItemsByWarehouseService, updateItemQuantityService, createTransactionService } from '../services/itemService';
 import { useNotification } from '../components/NotificationProvider';
 import { RefreshCw, Package, User, FileText } from 'lucide-react';
+import { getEgyptianTime } from '../lib/timeUtils';
 
 const AdminTransactionOperations = ({ onTransactionComplete }) => {
   const { addNotification } = useNotification();
@@ -34,7 +35,8 @@ const AdminTransactionOperations = ({ onTransactionComplete }) => {
         console.error('Error loading warehouses:', error);
         addNotification({
           message: 'حدث خطأ أثناء تحميل بيانات المخازن',
-          type: 'error'
+          type: 'error',
+          timestamp: getEgyptianTime().toISOString()
         });
         setLoading(false);
       }
@@ -56,7 +58,8 @@ const AdminTransactionOperations = ({ onTransactionComplete }) => {
           console.error('Error loading items:', error);
           addNotification({
             message: 'حدث خطأ أثناء تحميل بيانات العناصر',
-            type: 'error'
+            type: 'error',
+            timestamp: getEgyptianTime().toISOString()
           });
           setLoading(false);
         }
@@ -82,7 +85,8 @@ const AdminTransactionOperations = ({ onTransactionComplete }) => {
     if (!selectedWarehouse) {
       addNotification({
         message: 'يرجى اختيار المخزن',
-        type: 'error'
+        type: 'error',
+        timestamp: getEgyptianTime().toISOString()
       });
       return;
     }
@@ -95,7 +99,8 @@ const AdminTransactionOperations = ({ onTransactionComplete }) => {
           if (!selectedItem || !recipient) {
             addNotification({
               message: 'يرجى ملء جميع الحقول المطلوبة',
-              type: 'error'
+              type: 'error',
+              timestamp: getEgyptianTime().toISOString()
             });
             setIsSubmitting(false);
             return;
@@ -126,7 +131,8 @@ const AdminTransactionOperations = ({ onTransactionComplete }) => {
           addNotification({
             message: 'تم صرف العنصر بنجاح!',
             details: `العنصر: ${items.find(i => i.id == issueFormData.itemId)?.name} | الكمية: ${issueFormData.quantity} | المستلم: ${issueFormData.recipient}`,
-            type: 'success'
+            type: 'success',
+            timestamp: getEgyptianTime().toISOString()
           });
           
           // Reset form
@@ -140,7 +146,8 @@ const AdminTransactionOperations = ({ onTransactionComplete }) => {
           if (!selectedItem) {
             addNotification({
               message: 'يرجى اختيار العنصر المراد إرجاعه',
-              type: 'error'
+              type: 'error',
+              timestamp: getEgyptianTime().toISOString()
             });
             setIsSubmitting(false);
             return;
@@ -171,7 +178,8 @@ const AdminTransactionOperations = ({ onTransactionComplete }) => {
           addNotification({
             message: 'تم إرجاع العنصر بنجاح!',
             details: `العنصر: ${items.find(i => i.id == returnFormData.itemId)?.name} | الكمية: ${returnFormData.quantity} | الحالة: ${returnFormData.condition}`,
-            type: 'success'
+            type: 'success',
+            timestamp: getEgyptianTime().toISOString()
           });
           
           // Reset form
@@ -185,7 +193,8 @@ const AdminTransactionOperations = ({ onTransactionComplete }) => {
           if (!outgoingItem || !incomingItem || !recipient) {
             addNotification({
               message: 'يرجى ملء جميع الحقول المطلوبة',
-              type: 'error'
+              type: 'error',
+              timestamp: getEgyptianTime().toISOString()
             });
             setIsSubmitting(false);
             return;
@@ -233,7 +242,8 @@ const AdminTransactionOperations = ({ onTransactionComplete }) => {
           addNotification({
             message: 'تم تبديل العناصر بنجاح!',
             details: `التصبع: ${items.find(i => i.id == exchangeFormData.outgoingItemId)?.name} (${exchangeFormData.outgoingQuantity}) | الوارد: ${items.find(i => i.id == exchangeFormData.incomingItemId)?.name} (${exchangeFormData.incomingQuantity}) | المستلم: ${exchangeFormData.recipient}`,
-            type: 'success'
+            type: 'success',
+            timestamp: getEgyptianTime().toISOString()
           });
           
           // Reset form
@@ -257,7 +267,8 @@ const AdminTransactionOperations = ({ onTransactionComplete }) => {
       console.error('Error performing transaction:', error);
       addNotification({
         message: 'حدث خطأ أثناء تنفيذ العملية',
-        type: 'error'
+        type: 'error',
+        timestamp: getEgyptianTime().toISOString()
       });
     } finally {
       setIsSubmitting(false);
@@ -290,14 +301,16 @@ const AdminTransactionOperations = ({ onTransactionComplete }) => {
                   setItems(data);
                   addNotification({
                     message: 'تم تحديث بيانات العناصر',
-                    type: 'success'
+                    type: 'success',
+                    timestamp: getEgyptianTime().toISOString()
                   });
                   setLoading(false);
                 } catch (error) {
                   console.error('Error reloading items:', error);
                   addNotification({
                     message: 'حدث خطأ أثناء تحديث بيانات العناصر',
-                    type: 'error'
+                    type: 'error',
+                    timestamp: getEgyptianTime().toISOString()
                   });
                   setLoading(false);
                 }

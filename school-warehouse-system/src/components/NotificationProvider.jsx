@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { subscribeToNotifications, subscribeToBroadcast, unsubscribeAll } from '../services/realtimeService';
+import { formatEgyptianDateTime } from '../lib/timeUtils';
+import { getEgyptianTime } from '../lib/timeUtils';
 
 const NotificationContext = createContext();
 
@@ -27,13 +29,17 @@ export const NotificationProvider = ({ children }) => {
       addNotification({
         type: notification.type || 'info',
         message: notification.message,
-        details: notification.details?.message || null
+        details: notification.details?.message || null,
+        timestamp: notification.created_at || getEgyptianTime().toISOString()
       });
     }, user.id);
 
     // الاستماع للـ broadcast notifications (للإشعارات العامة)
     const broadcastSub = subscribeToBroadcast('notifications', 'notification', (payload) => {
-      addNotification(payload);
+      addNotification({
+        ...payload,
+        timestamp: payload.timestamp || getEgyptianTime().toISOString()
+      });
     });
 
     // تنظيف الاشتراكات عند إلغاء التحميل
@@ -45,7 +51,13 @@ export const NotificationProvider = ({ children }) => {
 
   const addNotification = (notification) => {
     const id = Date.now() + Math.random();
-    setNotifications(prev => [...prev, { ...notification, id }]);
+    const timestamp = notification.timestamp || getEgyptianTime().toISOString();
+    
+    setNotifications(prev => [...prev, { 
+      ...notification, 
+      id,
+      timestamp 
+    }]);
 
     // Auto remove notification after 5 seconds
     setTimeout(() => {
@@ -99,6 +111,11 @@ export const NotificationProvider = ({ children }) => {
               )}
               {notification.quantity && (
                 <p className="text-xs mt-1">الكمية: {Math.abs(notification.quantity)}</p>
+              )}
+              {notification.timestamp && (
+                <p className="text-xs mt-1 text-gray-500">
+                  {formatEgyptianDateTime(notification.timestamp)}
+                </p>
               )}
             </div>
             <button

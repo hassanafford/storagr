@@ -1,21 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { BarChart3, PieChart, FileText, TrendingUp, TrendingDown, Building, AlertTriangle, Package, RefreshCw, CheckCircle } from 'lucide-react';
 import { useNotification } from '../components/NotificationProvider';
 import dashboardService from '../services/dashboardService';
 import EnhancedPieChart from '../components/EnhancedPieChart';
 import EnhancedBarChart from '../components/EnhancedBarChart';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { 
-  BarChart3, 
-  PieChart, 
-  TrendingUp, 
-  TrendingDown, 
-  AlertTriangle, 
-  RefreshCw,
-  Users,
-  Package,
-  Building
-} from 'lucide-react';
+import { formatEgyptianDateTime, getEgyptianTime, toEgyptianTime } from '../lib/timeUtils';
 
 const EnhancedAdminDashboardPage = ({ user }) => {
   const { addNotification } = useNotification();
@@ -28,7 +18,7 @@ const EnhancedAdminDashboardPage = ({ user }) => {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [lastUpdated, setLastUpdated] = useState(new Date());
+  const [lastUpdated, setLastUpdated] = useState(getEgyptianTime());
 
   // Load dashboard data
   const loadDashboardData = async () => {
@@ -48,7 +38,7 @@ const EnhancedAdminDashboardPage = ({ user }) => {
         lowInventoryItems
       });
       
-      setLastUpdated(new Date());
+      setLastUpdated(getEgyptianTime());
     } catch (err) {
       console.error('Error loading dashboard data:', err);
       setError(err.message);
@@ -87,7 +77,7 @@ const EnhancedAdminDashboardPage = ({ user }) => {
 
   // Format time ago
   const formatTimeAgo = (date) => {
-    const now = new Date();
+    const now = getEgyptianTime();
     const diffInMinutes = Math.floor((now - date) / (1000 * 60));
     
     if (diffInMinutes < 1) return 'الآن';
@@ -109,22 +99,22 @@ const EnhancedAdminDashboardPage = ({ user }) => {
         let title = 'تم صرف عناصر';
         let icon = <TrendingDown className="h-5 w-5 text-blue-600" />;
         
-        if (transaction.transaction_type === 'return') {
+        if (transaction.transaction_type === 'in') {
           type = 'add';
           title = 'تم إرجاع عناصر';
           icon = <TrendingUp className="h-5 w-5 text-teal-600" />;
-        } else if (transaction.transaction_type === 'exchange_out' || transaction.transaction_type === 'exchange_in') {
+        } else if (transaction.transaction_type === 'out') {
           type = 'exchange';
           title = 'تم تبديل عناصر';
           icon = <RefreshCw className="h-5 w-5 text-purple-600" />;
         }
-        
+
         return {
           id: transaction.id,
           type: type,
           title: title,
           description: `${Math.abs(transaction.quantity)} ${transaction.item_name} - ${transaction.recipient}`,
-          time: formatTimeAgo(new Date(transaction.created_at)),
+          time: formatTimeAgo(toEgyptianTime(new Date(transaction.created_at))),
           warehouse: transaction.warehouse_name,
           user: transaction.user_name,
           icon: icon

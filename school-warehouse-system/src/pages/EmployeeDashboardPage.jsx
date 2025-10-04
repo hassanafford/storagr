@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { BarChart3, Package, TrendingUp, TrendingDown, AlertTriangle, User, Calendar, FileText, Clock, Search, RefreshCw } from 'lucide-react';
 import { useNotification } from '../components/NotificationProvider';
-import { getWarehouseByIdService } from '../services/warehouseService';
+import { getWarehouseByIdService, getWarehouseItemsService, getWarehouseStatsService } from '../services/warehouseService';
 import { getItemsByWarehouseService, updateItemQuantityService, createTransactionService, getTransactionsByWarehouseService } from '../services/itemService';
-import { useNavigate } from 'react-router-dom';
-import { Menu, X, Home, Warehouse, FileText } from 'lucide-react';
-import analyticsService from '../services/analyticsService';
+import { formatTimeAgo } from '../lib/timeUtils';
 import DashboardPieChart from '../components/DashboardPieChart';
 import { subscribeToInventoryUpdates, subscribeToTransactions } from '../services/realtimeService';
 
@@ -70,7 +70,7 @@ function EmployeeDashboardPage({ user }) {
     try {
       setAnalyticsLoading(true);
       setAnalyticsError(null);
-      const data = await analyticsService.getEmployeeAnalytics(warehouseId);
+      const data = await getWarehouseStatsService(warehouseId);
       setAnalyticsData(data);
     } catch (error) {
       console.error('Error loading employee analytics data:', error);
@@ -107,10 +107,10 @@ function EmployeeDashboardPage({ user }) {
 
   // Mobile tab navigation items
   const tabItems = [
-    { id: 'analytics', name: 'التحليلات', icon: <FileText className="h-4 w-4" /> },
-    { id: 'issue', name: 'صرف عناصر', icon: <Home className="h-4 w-4" /> },
-    { id: 'return', name: 'إرجاع عناصر', icon: <FileText className="h-4 w-4" /> },
-    { id: 'exchange', name: 'تبديل عناصر', icon: <Warehouse className="h-4 w-4" /> },
+    { id: 'analytics', name: 'التحليلات', icon: <BarChart3 className="h-4 w-4" /> },
+    { id: 'issue', name: 'صرف عناصر', icon: <TrendingDown className="h-4 w-4" /> },
+    { id: 'return', name: 'إرجاع عناصر', icon: <TrendingUp className="h-4 w-4" /> },
+    { id: 'exchange', name: 'تبديل عناصر', icon: <RefreshCw className="h-4 w-4" /> },
     { id: 'log', name: 'سجل الحركات', icon: <FileText className="h-4 w-4" /> },
   ];
 
@@ -920,14 +920,7 @@ function TransactionLog({ addNotification, user, warehouse }) {
   }, [warehouse]);
 
   const formatTimeAgo = (dateString) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffInMinutes = Math.floor((now - date) / (1000 * 60));
-
-    if (diffInMinutes < 1) return 'الآن';
-    if (diffInMinutes < 60) return `منذ ${diffInMinutes} دقيقة`;
-    if (diffInMinutes < 1440) return `منذ ${Math.floor(diffInMinutes / 60)} ساعة`;
-    return `منذ ${Math.floor(diffInMinutes / 1440)} يوم`;
+    return formatTimeAgo(dateString);
   };
 
   if (loading) {
@@ -967,15 +960,16 @@ function TransactionLog({ addNotification, user, warehouse }) {
                 <tr key={transaction.id}>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{transaction.item_name}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${transaction.transaction_type === 'issue' ? 'bg-blue-100 text-blue-800' :
-                      transaction.transaction_type === 'return' ? 'bg-green-100 text-green-800' :
+                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${transaction.transaction_type === 'out' ? 'bg-blue-100 text-blue-800' :
+                      transaction.transaction_type === 'in' ? 'bg-green-100 text-green-800' :
                         'bg-purple-100 text-purple-800'
                       }`}>
-                      {transaction.transaction_type === 'issue' ? 'صرف' :
-                        transaction.transaction_type === 'return' ? 'إرجاع' :
-                          transaction.transaction_type === 'exchange_out' ? 'تبديل (تصبع)' :
-                            transaction.transaction_type === 'exchange_in' ? 'تبديل (وارد)' :
-                              transaction.transaction_type}
+                      {transaction.transaction_type === 'out' ? 'صرف' :
+                        transaction.transaction_type === 'in' ? 'إرجاع' :
+                          transaction.transaction_type === 'adjustment' ? 'تعديل' :
+                            transaction.transaction_type === 'audit' ? 'جرد' :
+                              transaction.transaction_type === 'transfer' ? 'تحويل' :
+                                transaction.transaction_type}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{Math.abs(transaction.quantity)}</td>

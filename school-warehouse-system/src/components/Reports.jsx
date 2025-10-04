@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { getTransactionsService } from '../services/itemService';
-import { getAllWarehouses } from '../services/warehouseService';
-import { getAllItemsService } from '../services/itemService';
+import { BarChart3, PieChart, FileText, TrendingUp, TrendingDown, RefreshCw } from 'lucide-react';
+import { getTransactionsService, getAllItemsService } from '../services/itemService';
+import { getAllWarehousesService } from '../services/warehouseService';
 import InventoryAnalytics from './InventoryAnalytics';
+import { formatEgyptianDateTime, getEgyptianTime, toEgyptianTime } from '../lib/timeUtils';
 
 const Reports = () => {
   const [transactions, setTransactions] = useState([]);
@@ -23,7 +24,7 @@ const Reports = () => {
       try {
         const [transactionsData, warehousesData, itemsData] = await Promise.all([
           getTransactionsService(),
-          getAllWarehouses(),
+          getAllWarehousesService(),
           getAllItemsService()
         ]);
         
@@ -62,8 +63,8 @@ const Reports = () => {
     }
     
     if (filter.dateRange !== 'all') {
-      const now = new Date();
-      let startDate = new Date();
+      const now = getEgyptianTime();
+      let startDate = getEgyptianTime();
       
       switch (filter.dateRange) {
         case 'today':
@@ -80,7 +81,7 @@ const Reports = () => {
       }
       
       filtered = filtered.filter(transaction => 
-        new Date(transaction.created_at) >= startDate
+        toEgyptianTime(transaction.created_at) >= startDate
       );
     }
     
@@ -96,17 +97,17 @@ const Reports = () => {
 
   const getTransactionTypeLabel = (type) => {
     switch (type) {
-      case 'issue': return 'صرف';
-      case 'return': return 'إرجاع';
-      case 'exchange_out': return 'تبديل (تصبع)';
-      case 'exchange_in': return 'تبديل (وارد)';
+      case 'out': return 'صرف';
+      case 'in': return 'إرجاع';
+      case 'adjustment': return 'تعديل';
+      case 'audit': return 'جرد';
+      case 'transfer': return 'تحويل';
       default: return type;
     }
   };
 
   const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('ar-EG');
+    return formatEgyptianDateTime(dateString);
   };
 
   if (loading) {
@@ -155,10 +156,11 @@ const Reports = () => {
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
             <option value="all">جميع الأنواع</option>
-            <option value="issue">صرف</option>
-            <option value="return">إرجاع</option>
-            <option value="exchange_out">تبديل (تصبع)</option>
-            <option value="exchange_in">تبديل (وارد)</option>
+            <option value="out">صرف</option>
+            <option value="in">إرجاع</option>
+            <option value="adjustment">تعديل</option>
+            <option value="audit">جرد</option>
+            <option value="transfer">تحويل</option>
           </select>
         </div>
         
@@ -204,23 +206,23 @@ const Reports = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             <div className="bg-blue-50 rounded-lg p-4 border border-blue-100">
               <div className="text-blue-800 font-bold text-xl">
-                {filteredTransactions.filter(t => t.transaction_type === 'issue').length}
+                {filteredTransactions.filter(t => t.transaction_type === 'out').length}
               </div>
               <div className="text-blue-600 text-sm">عمليات الصرف</div>
             </div>
             
             <div className="bg-green-50 rounded-lg p-4 border border-green-100">
               <div className="text-green-800 font-bold text-xl">
-                {filteredTransactions.filter(t => t.transaction_type === 'return').length}
+                {filteredTransactions.filter(t => t.transaction_type === 'in').length}
               </div>
               <div className="text-green-600 text-sm">عمليات الإرجاع</div>
             </div>
             
             <div className="bg-purple-50 rounded-lg p-4 border border-purple-100">
               <div className="text-purple-800 font-bold text-xl">
-                {filteredTransactions.filter(t => t.transaction_type.includes('exchange')).length}
+                {filteredTransactions.filter(t => t.transaction_type === 'adjustment' || t.transaction_type === 'audit' || t.transaction_type === 'transfer').length}
               </div>
-              <div className="text-purple-600 text-sm">عمليات التبديل</div>
+              <div className="text-purple-600 text-sm">عمليات أخرى</div>
             </div>
           </div>
       
@@ -250,8 +252,8 @@ const Reports = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
                         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                          transaction.transaction_type === 'issue' ? 'bg-blue-100 text-blue-800' :
-                          transaction.transaction_type === 'return' ? 'bg-green-100 text-green-800' :
+                          transaction.transaction_type === 'out' ? 'bg-blue-100 text-blue-800' :
+                          transaction.transaction_type === 'in' ? 'bg-green-100 text-green-800' :
                           'bg-purple-100 text-purple-800'
                         }`}>
                           {getTransactionTypeLabel(transaction.transaction_type)}
@@ -295,8 +297,8 @@ const Reports = () => {
                       <div className="font-medium text-gray-700">النوع:</div>
                       <div className="text-gray-900">
                         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                          transaction.transaction_type === 'issue' ? 'bg-blue-100 text-blue-800' :
-                          transaction.transaction_type === 'return' ? 'bg-green-100 text-green-800' :
+                          transaction.transaction_type === 'out' ? 'bg-blue-100 text-blue-800' :
+                          transaction.transaction_type === 'in' ? 'bg-green-100 text-green-800' :
                           'bg-purple-100 text-purple-800'
                         }`}>
                           {getTransactionTypeLabel(transaction.transaction_type)}
