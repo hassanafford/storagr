@@ -13,9 +13,9 @@ const getToken = () => {
   return user.token;
 };
 
-// Authentication function using Supabase
+// Authentication function using Supabase with password verification
 export const authenticateUser = async (nationalId, password) => {
-  console.log('Login attempt:', { nationalId, password });
+  console.log('Login attempt:', { nationalId });
 
   if (!nationalId || !password) {
     throw new Error('National ID and password are required');
@@ -24,17 +24,6 @@ export const authenticateUser = async (nationalId, password) => {
   // Validate that national ID is numeric
   if (!/^[0-9]+$/.test(nationalId)) {
     throw new Error('Invalid national ID format');
-  }
-
-  // Extract last 6 digits of national ID as expected password
-  const expectedPassword = nationalId.slice(-6);
-
-  console.log('Expected password:', expectedPassword);
-  console.log('Provided password:', password);
-
-  // Check if provided password matches expected password
-  if (password !== expectedPassword) {
-    throw new Error('Invalid credentials');
   }
 
   try {
@@ -49,39 +38,54 @@ export const authenticateUser = async (nationalId, password) => {
       .single();
 
     if (error) {
-      console.error('Error authenticating user:', error);
-      throw new Error('Authentication failed');
+      console.error('Error fetching user:', error);
+      throw new Error('Invalid credentials');
     }
 
     if (!data) {
-      // User not found - return error instead of creating new user
-      throw new Error('User not registered');
-    } else {
-      const user = data;
+      throw new Error('Invalid credentials');
+    }
 
-      // Create a token (in a real app, you would use JWT)
-      const token = Buffer.from(JSON.stringify({
+    // Verify password using database function
+    const { data: verifyData, error: verifyError } = await supabase
+      .rpc('verify_password', {
+        password: password,
+        password_hash: data.password_hash
+      });
+
+    if (verifyError) {
+      console.error('Error verifying password:', verifyError);
+      throw new Error('Authentication failed');
+    }
+
+    if (!verifyData) {
+      throw new Error('Invalid credentials');
+    }
+
+    const user = data;
+
+    // Create a token (in a real app, you would use JWT)
+    const token = Buffer.from(JSON.stringify({
+      id: user.id,
+      national_id: user.national_id,
+      name: user.name,
+      role: user.role,
+      warehouse_id: user.warehouse_id
+    })).toString('base64');
+
+    return {
+      token,
+      user: {
         id: user.id,
         national_id: user.national_id,
         name: user.name,
         role: user.role,
         warehouse_id: user.warehouse_id
-      })).toString('base64');
-
-      return {
-        token,
-        user: {
-          id: user.id,
-          national_id: user.national_id,
-          name: user.name,
-          role: user.role,
-          warehouse_id: user.warehouse_id
-        }
-      };
-    }
+      }
+    };
   } catch (err) {
     console.error('Error authenticating user:', err);
-    throw new Error('Authentication failed');
+    throw err;
   }
 };
 
@@ -227,11 +231,23 @@ export const getAllUsers = async () => {
 };
 
 export const createUser = async (userData) => {
+  // Hash the password (last 6 digits of national ID)
+  const password = userData.national_id.slice(-6);
+
+  const { data: hashedPassword, error: hashError } = await supabase
+    .rpc('hash_password', { password });
+
+  if (hashError) {
+    console.error('Error hashing password:', hashError);
+    throw new Error('Failed to create user');
+  }
+
   const { data, error } = await supabase
     .from('users')
     .insert({
       national_id: userData.national_id,
       name: userData.name,
+      password_hash: hashedPassword,
       role: userData.role,
       warehouse_id: userData.warehouse_id
     })
