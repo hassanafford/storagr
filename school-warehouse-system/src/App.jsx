@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useNavigate, NavLink } from 'react-router-dom';
 import { createClient } from '@supabase/supabase-js';
 import { useNotification } from './components/NotificationProvider';
 import { getEgyptianTime } from './lib/timeUtils';

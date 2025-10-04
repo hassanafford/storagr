@@ -233,6 +233,7 @@ const Reports = () => {
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">العنصر</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">المخزن</th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">المستخدم</th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">النوع</th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الكمية</th>
@@ -245,10 +246,13 @@ const Reports = () => {
                   filteredTransactions.map((transaction) => (
                     <tr key={transaction.id}>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {transaction.item_name}
+                        {transaction.items?.name || 'غير محدد'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {transaction.user_name}
+                        {transaction.items?.warehouses?.name || 'غير محدد'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {transaction.users?.name || 'غير محدد'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
                         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
@@ -272,7 +276,7 @@ const Reports = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="6" className="px-6 py-4 text-center text-sm text-gray-500">
+                    <td colSpan="7" className="px-6 py-4 text-center text-sm text-gray-500">
                       لا توجد معاملات مطابقة للمعايير
                     </td>
                   </tr>
@@ -289,11 +293,14 @@ const Reports = () => {
                   <div key={transaction.id} className="border border-gray-200 rounded-lg p-4 bg-white shadow-sm">
                     <div className="grid grid-cols-2 gap-2">
                       <div className="font-medium text-gray-700">العنصر:</div>
-                      <div className="text-gray-900">{transaction.item_name}</div>
+                      <div className="text-gray-900">{transaction.items?.name || 'غير محدد'}</div>
                       
+                      <div className="font-medium text-gray-700">المخزن:</div>
+                      <div className="text-gray-900">{transaction.items?.warehouses?.name || 'غير محدد'}</div>
+
                       <div className="font-medium text-gray-700">المستخدم:</div>
-                      <div className="text-gray-900">{transaction.user_name}</div>
-                      
+                      <div className="text-gray-900">{transaction.users?.name || 'غير محدد'}</div>
+
                       <div className="font-medium text-gray-700">النوع:</div>
                       <div className="text-gray-900">
                         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${

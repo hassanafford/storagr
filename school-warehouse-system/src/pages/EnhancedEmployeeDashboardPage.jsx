@@ -278,12 +278,16 @@ const EnhancedEmployeeDashboardPage = ({ user }) => {
                               {getTransactionTypeLabel(transaction.transaction_type)}
                             </p>
                             <p className="text-sm text-gray-600">
-                              {Math.abs(transaction.quantity)} {transaction.item_name}
+                              {Math.abs(transaction.quantity)} {transaction.items?.name || 'غير محدد'}
                             </p>
                             <p className="text-xs text-gray-500 mt-1">
-                              {transaction.user_name} | {formatTimeAgo(transaction.created_at)}
+                              {transaction.users?.name || 'غير محدد'} | {formatTimeAgo(transaction.created_at)}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              مخزن: {transaction.items?.warehouses?.name || 'غير محدد'}
                             </p>
                           </div>
+
                         </div>
                       ))
                     ) : (
@@ -312,6 +316,7 @@ const EnhancedEmployeeDashboardPage = ({ user }) => {
                       <tr>
                         <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">النوع</th>
                         <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">العنصر</th>
+                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">المخزن</th>
                         <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الكمية</th>
                         <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">المستخدم</th>
                         <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">التاريخ</th>
@@ -325,7 +330,10 @@ const EnhancedEmployeeDashboardPage = ({ user }) => {
                               {getTransactionTypeLabel(transaction.transaction_type)}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                              {transaction.item_name}
+                              {transaction.items?.name || 'غير محدد'}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {transaction.items?.warehouses?.name || 'غير محدد'}
                             </td>
                             <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${
                               transaction.quantity < 0 ? 'text-red-600' : 'text-green-600'
@@ -333,7 +341,7 @@ const EnhancedEmployeeDashboardPage = ({ user }) => {
                               {transaction.quantity > 0 ? '+' : ''}{transaction.quantity}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              {transaction.user_name}
+                              {transaction.users?.name || 'غير محدد'}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                               {formatTimeAgo(transaction.created_at)}
@@ -342,7 +350,7 @@ const EnhancedEmployeeDashboardPage = ({ user }) => {
                         ))
                       ) : (
                         <tr>
-                          <td colSpan="5" className="px-6 py-4 text-center text-gray-500">
+                          <td colSpan="6" className="px-6 py-4 text-center text-gray-500">
                             لا توجد حركات
                           </td>
                         </tr>

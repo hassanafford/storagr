@@ -1034,6 +1034,7 @@ function WarehouseDetailPage() {
                 <tr>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">النوع</th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">العنصر</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">المخزن</th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الكمية</th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">المستلم/الحالة</th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">المستخدم</th>
@@ -1050,7 +1051,8 @@ function WarehouseDetailPage() {
                       {transaction.transaction_type === 'audit' && 'جرد'}
                       {transaction.transaction_type === 'transfer' && 'تحويل'}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{transaction.item_name}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{transaction.items?.name || 'غير محدد'}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{transaction.items?.warehouses?.name || 'غير محدد'}</td>
                     <td className={`px-6 py-4 whitespace-nowrap text-sm ${transaction.quantity < 0 ? 'text-red-600' : 'text-green-600'
                       }`}>
                       {transaction.quantity > 0 ? '+' : ''}{transaction.quantity}
@@ -1058,7 +1060,7 @@ function WarehouseDetailPage() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {transaction.recipient}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{transaction.user_name}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{transaction.users?.name || 'غير محدد'}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatTimeAgo(transaction.created_at)}</td>
                   </tr>
                 ))}
@@ -1083,7 +1085,10 @@ function WarehouseDetailPage() {
                       </div>
 
                       <div className="font-medium text-gray-700">العنصر:</div>
-                      <div className="text-gray-900">{transaction.item_name}</div>
+                      <div className="text-gray-900">{transaction.items?.name || 'غير محدد'}</div>
+
+                      <div className="font-medium text-gray-700">المخزن:</div>
+                      <div className="text-gray-900">{transaction.items?.warehouses?.name || 'غير محدد'}</div>
 
                       <div className="font-medium text-gray-700">الكمية:</div>
                       <div className={`text-gray-900 ${transaction.quantity < 0 ? 'text-red-600' : 'text-green-600'
@@ -1095,7 +1100,7 @@ function WarehouseDetailPage() {
                       <div className="text-gray-900">{transaction.recipient}</div>
 
                       <div className="font-medium text-gray-700">المستخدم:</div>
-                      <div className="text-gray-900">{transaction.user_name}</div>
+                      <div className="text-gray-900">{transaction.users?.name || 'غير محدد'}</div>
 
                       <div className="font-medium text-gray-700">التاريخ:</div>
                       <div className="text-gray-900">{formatTimeAgo(transaction.created_at)}</div>
