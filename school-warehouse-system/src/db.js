@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { mapAppToDbTransactionType } from './lib/transactionUtils';
 
 // Supabase configuration - Fixed for Vite environment variables
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://oselaoheeykmsvkvrfwa.supabase.co';
@@ -417,12 +418,15 @@ export const createTransaction = async (transactionData) => {
     discrepancy = transactionData.actual_quantity - transactionData.expected_quantity;
   }
 
+  // Map the transaction type from app format to database format
+  const dbTransactionType = mapAppToDbTransactionType(transactionData.transaction_type);
+
   const { data, error } = await supabase
     .from('transactions')
     .insert({
       item_id: transactionData.item_id,
       user_id: transactionData.user_id,
-      transaction_type: transactionData.transaction_type,
+      transaction_type: dbTransactionType,
       quantity: transactionData.quantity,
       recipient: transactionData.recipient,
       notes: transactionData.notes,
