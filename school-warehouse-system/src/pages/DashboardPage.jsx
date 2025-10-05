@@ -2,10 +2,9 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BarChart3, PieChart, FileText, Plus, TrendingUp, AlertTriangle, User, Calendar, Package, TrendingDown, Minus } from 'lucide-react';
 import { useNotification } from '../components/NotificationProvider';
-import { getAllWarehousesService, getWarehouseItemsService } from '../services/warehouseService';
-import { getAllItemsService, getTransactionsService, getLowInventoryItemsService, getItemsByWarehouseService } from '../services/itemService';
-import { getWarehouseStatsService } from '../services/warehouseService';
-import { formatTimeAgo, formatEgyptianDateTime } from '../lib/timeUtils';
+import { getAllWarehousesService } from '../services/warehouseService';
+import { getTransactionsService, getLowInventoryItemsService, getItemsByWarehouseService } from '../services/itemService';
+import { formatTimeAgo } from '../lib/timeUtils';
 import AdminTransactionOperations from '../components/AdminTransactionOperations';
 import EnhancedWarehouseCard from '../components/EnhancedWarehouseCard';
 import DashboardPieChart from '../components/DashboardPieChart';
@@ -23,16 +22,15 @@ function DashboardPage({ user }) {
   const [items, setItems] = useState([]);
   const [transactions, setTransactions] = useState([]);
   const [showAnalytics, setShowAnalytics] = useState(false);
-  const [refreshInterval, setRefreshInterval] = useState(null);
   const [showTransactionOperations, setShowTransactionOperations] = useState(false);
-
-  // Analytics state
   const [analyticsData, setAnalyticsData] = useState(null);
-  const [analyticsLoading, setAnalyticsLoading] = useState(false);
-  const [analyticsError, setAnalyticsError] = useState(null);
 
   // Ref to track if interval is already set up
   const intervalRef = useRef(null);
+
+  const formatTransactionTimeAgo = useCallback((dateString) => {
+    return formatTimeAgo(dateString);
+  }, []);
 
   useEffect(() => {
     const loadWarehouses = async () => {
@@ -53,26 +51,7 @@ function DashboardPage({ user }) {
     loadWarehouses();
   }, []);
 
-  // Load analytics data
-  const loadAnalyticsData = useCallback(async () => {
-    try {
-      console.log('Loading analytics data...');
-      setAnalyticsLoading(true);
-      setAnalyticsError(null);
-      const data = await analyticsService.getAdminAnalytics();
-      console.log('Analytics data loaded:', data);
-      setAnalyticsData(data);
-    } catch (error) {
-      console.error('Error loading analytics data:', error);
-      setAnalyticsError(error.message);
-      addNotification({
-        message: 'حدث خطأ أثناء تحميل بيانات التحليلات',
-        type: 'error'
-      });
-    } finally {
-      setAnalyticsLoading(false);
-    }
-  }, [addNotification]);
+
 
   const loadDashboardData = useCallback(async () => {
     console.log('Loading dashboard data. Warehouses count:', warehouses.length);
@@ -85,10 +64,20 @@ function DashboardPage({ user }) {
 
     try {
       console.log('Starting data load...');
+      
+      // Load all data in parallel to improve performance
+      const [transactionsData, lowItems, analytics] = await Promise.all([
+        getTransactionsService(),
+        getLowInventoryItemsService(10),
+        analyticsService.getAdminAnalytics()
+      ]);
+
+      // Process warehouse stats
       const stats = [];
       for (const warehouse of warehouses) {
-        const items = await getItemsByWarehouseService(warehouse.id);
-        const totalItems = items.reduce((sum, item) => sum + (item.quantity || 0), 0);
+        // We'll get the item count from the analytics data for better performance
+        const warehouseData = analytics.itemsByWarehouse.find(w => w.label === warehouse.name);
+        const totalItems = warehouseData ? warehouseData.value : 0;
 
         let status = 'normal';
         if (totalItems < 300) {
@@ -104,12 +93,14 @@ function DashboardPage({ user }) {
           status: status
         });
       }
+      
       console.log('Setting warehouse stats. Count:', stats.length);
       setWarehouseStats(stats);
-
-      const transactionsData = await getTransactionsService();
       setTransactions(transactionsData);
+      setLowInventoryItems(lowItems);
+      setAnalyticsData(analytics);
 
+      // Process recent activities
       const activities = transactionsData.slice(0, 5).map(transaction => {
         let type = 'issue';
         let title = 'تم صرف عناصر';
@@ -142,18 +133,6 @@ function DashboardPage({ user }) {
       });
       setRecentActivities(activities);
 
-      const lowItems = await getLowInventoryItemsService(10);
-      setLowInventoryItems(lowItems);
-
-      const allItems = [];
-      for (const warehouse of warehouses) {
-        const warehouseItems = await getItemsByWarehouseService(warehouse.id);
-        allItems.push(...warehouseItems);
-      }
-      setItems(allItems);
-
-      loadAnalyticsData();
-
       setLoading(false);
     } catch (error) {
       console.error('Error loading dashboard data:', error);
@@ -163,34 +142,34 @@ function DashboardPage({ user }) {
       });
       setLoading(false);
     }
-  }, [warehouses, addNotification, loadAnalyticsData]);
+  }, [formatTransactionTimeAgo, addNotification]);
 
   useEffect(() => {
     console.log('Data loading useEffect triggered. Warehouses:', warehouses.length);
     if (warehouses.length > 0) {
       loadDashboardData();
     }
-  }, []);
+  }, [warehouses.length]);
 
   // Set up real-time data synchronization
   useEffect(() => {
-    // Clear any existing interval
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-
-    console.log('Setting up real-time data sync. Warehouses:', warehouses.length);
-
+    // Only set up interval if we have warehouses
     if (warehouses.length === 0) {
       console.log('No warehouses, skipping interval setup');
       return;
     }
 
+    console.log('Setting up real-time data sync. Warehouses:', warehouses.length);
+
+    // Clear any existing interval
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+    }
+
+    // Set up new interval
     intervalRef.current = setInterval(() => {
       console.log('Refreshing dashboard data...');
       loadDashboardData();
-      loadAnalyticsData();
     }, 30000);
 
     console.log('Setting new interval');
@@ -202,16 +181,11 @@ function DashboardPage({ user }) {
         intervalRef.current = null;
       }
     };
-  }, [loadDashboardData, loadAnalyticsData]);
-
-  const formatTransactionTimeAgo = useCallback((dateString) => {
-    return formatTimeAgo(dateString);
-  }, []);
+  }, [warehouses.length]);
 
   const handleTransactionComplete = () => {
     // Reload all dashboard data after a transaction
     loadDashboardData();
-    loadAnalyticsData();
   };
 
   if (loading) {
@@ -276,7 +250,6 @@ function DashboardPage({ user }) {
 
         {/* Enhanced Warehouse Cards with real-time monitoring */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          {console.log('Rendering warehouse cards. Count:', warehouseStats.length, 'Data:', warehouseStats)}
           {warehouseStats.map((warehouse) => (
             <EnhancedWarehouseCard
               key={warehouse.id}
@@ -288,22 +261,22 @@ function DashboardPage({ user }) {
         </div>
 
         {/* Analytics Charts */}
-        {showAnalytics && analyticsData && (
+        {showAnalytics && warehouseStats.length > 0 && (
           <>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
               <DashboardPieChart
                 title="توزيع الأصناف حسب النوع"
-                data={analyticsData.itemsByCategory}
-                onRefresh={loadAnalyticsData}
-                loading={analyticsLoading}
-                error={analyticsError}
+                data={analyticsData?.itemsByCategory || []}
+                onRefresh={loadDashboardData}
+                loading={loading}
+                error={null}
               />
               <DashboardPieChart
                 title="توزيع الأصناف حسب المخزن"
-                data={analyticsData.itemsByWarehouse}
-                onRefresh={loadAnalyticsData}
-                loading={analyticsLoading}
-                error={analyticsError}
+                data={analyticsData?.itemsByWarehouse || []}
+                onRefresh={loadDashboardData}
+                loading={loading}
+                error={null}
               />
             </div>
 
@@ -311,28 +284,28 @@ function DashboardPage({ user }) {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
               <DashboardPieChart
                 title="أنواع المعاملات"
-                data={analyticsData.transactionTypes}
-                onRefresh={loadAnalyticsData}
-                loading={analyticsLoading}
-                error={analyticsError}
+                data={analyticsData?.transactionTypes || []}
+                onRefresh={loadDashboardData}
+                loading={loading}
+                error={null}
               />
               <div className="bg-white rounded-xl shadow p-6">
                 <h3 className="text-lg font-semibold text-gray-800 mb-4">ملخص البيانات</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="bg-blue-50 rounded-lg p-4 text-center">
-                    <p className="text-2xl font-bold text-blue-600">{analyticsData.totalItems.toLocaleString()}</p>
+                    <p className="text-2xl font-bold text-blue-600">{(analyticsData?.totalItems || 0).toLocaleString()}</p>
                     <p className="text-sm text-gray-600">إجمالي العناصر</p>
                   </div>
                   <div className="bg-green-50 rounded-lg p-4 text-center">
-                    <p className="text-2xl font-bold text-green-600">{analyticsData.totalWarehouses}</p>
+                    <p className="text-2xl font-bold text-green-600">{analyticsData?.totalWarehouses || 0}</p>
                     <p className="text-sm text-gray-600">عدد المخازن</p>
                   </div>
                   <div className="bg-purple-50 rounded-lg p-4 text-center">
-                    <p className="text-2xl font-bold text-purple-600">{analyticsData.totalTransactions.toLocaleString()}</p>
+                    <p className="text-2xl font-bold text-purple-600">{(analyticsData?.totalTransactions || 0).toLocaleString()}</p>
                     <p className="text-sm text-gray-600">عدد المعاملات</p>
                   </div>
                   <div className="bg-red-50 rounded-lg p-4 text-center">
-                    <p className="text-2xl font-bold text-red-600">{analyticsData.lowInventoryItems}</p>
+                    <p className="text-2xl font-bold text-red-600">{analyticsData?.lowInventoryItems || 0}</p>
                     <p className="text-sm text-gray-600">عناصر منخفضة</p>
                   </div>
                 </div>
