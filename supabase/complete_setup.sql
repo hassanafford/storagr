@@ -42,6 +42,7 @@ DROP FUNCTION IF EXISTS get_warehouse_stats(BIGINT) CASCADE;
 -- حذف الجداول بالترتيب الصحيح (من الأصغر للأكبر)
 DROP TABLE IF EXISTS notifications CASCADE;
 DROP TABLE IF EXISTS transactions CASCADE;
+DROP TABLE IF EXISTS daily_audits CASCADE;
 DROP TABLE IF EXISTS items CASCADE;
 DROP TABLE IF EXISTS audit_logs CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
@@ -145,6 +146,21 @@ CREATE TABLE audit_logs (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
+-- جدول المراجعات اليومية (Daily Audits)
+CREATE TABLE daily_audits (
+  id BIGSERIAL PRIMARY KEY,
+  warehouse_id BIGINT REFERENCES warehouses(id) ON DELETE CASCADE,
+  item_id BIGINT REFERENCES items(id) ON DELETE CASCADE,
+  user_id BIGINT REFERENCES users(id) ON DELETE SET NULL,
+  expected_quantity INTEGER NOT NULL,
+  actual_quantity INTEGER NOT NULL,
+  discrepancy INTEGER,
+  notes TEXT,
+  audit_date DATE NOT NULL,
+  egyptian_timestamp VARCHAR(50),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
 -- ============================================
 -- المرحلة 3: إنشاء Indexes للأداء
 -- ============================================
@@ -169,6 +185,12 @@ CREATE INDEX idx_notifications_created ON notifications(created_at DESC);
 
 CREATE INDEX idx_audit_logs_user ON audit_logs(user_id);
 CREATE INDEX idx_audit_logs_table ON audit_logs(table_name, record_id);
+
+CREATE INDEX idx_daily_audits_warehouse ON daily_audits(warehouse_id);
+CREATE INDEX idx_daily_audits_item ON daily_audits(item_id);
+CREATE INDEX idx_daily_audits_user ON daily_audits(user_id);
+CREATE INDEX idx_daily_audits_date ON daily_audits(audit_date);
+CREATE INDEX idx_daily_audits_created ON daily_audits(created_at DESC);
 
 -- ============================================
 -- المرحلة 4: Database Functions
@@ -341,6 +363,7 @@ ALTER TABLE items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE transactions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE audit_logs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE daily_audits ENABLE ROW LEVEL SECURITY;
 
 -- سياسات المستودعات - السماح بالوصول الكامل (للتطوير)
 CREATE POLICY "Allow public read access to warehouses" ON warehouses
@@ -431,6 +454,19 @@ CREATE POLICY "Allow public update to audit_logs" ON audit_logs
   FOR UPDATE USING (true);
 
 CREATE POLICY "Allow public delete to audit_logs" ON audit_logs
+  FOR DELETE USING (true);
+
+-- سياسات المراجعات اليومية - السماح بالوصول الكامل
+CREATE POLICY "Allow public read access to daily_audits" ON daily_audits
+  FOR SELECT USING (true);
+
+CREATE POLICY "Allow public insert to daily_audits" ON daily_audits
+  FOR INSERT WITH CHECK (true);
+
+CREATE POLICY "Allow public update to daily_audits" ON daily_audits
+  FOR UPDATE USING (true);
+
+CREATE POLICY "Allow public delete to daily_audits" ON daily_audits
   FOR DELETE USING (true);
 
 -- ============================================
@@ -562,6 +598,28 @@ LEFT JOIN categories c ON i.category_id = c.id
 WHERE i.quantity <= i.min_quantity
 ORDER BY i.quantity ASC;
 
+-- عرض للمراجعات اليومية مع معلومات كاملة
+CREATE OR REPLACE VIEW daily_audits_full_view AS
+SELECT 
+  da.id,
+  da.expected_quantity,
+  da.actual_quantity,
+  da.discrepancy,
+  da.notes,
+  da.audit_date,
+  da.egyptian_timestamp,
+  i.name as item_name,
+  i.id as item_id,
+  w.name as warehouse_name,
+  w.id as warehouse_id,
+  u.name as user_name,
+  u.id as user_id,
+  da.created_at
+FROM daily_audits da
+LEFT JOIN items i ON da.item_id = i.id
+LEFT JOIN warehouses w ON da.warehouse_id = w.id
+LEFT JOIN users u ON da.user_id = u.id;
+
 -- ============================================
 -- المرحلة 9: التحقق من نجاح الإعداد
 -- ============================================
@@ -575,7 +633,8 @@ SELECT
   (SELECT COUNT(*) FROM categories) as "عدد الفئات",
   (SELECT COUNT(*) FROM users) as "عدد المستخدمين",
   (SELECT COUNT(*) FROM items) as "عدد الأصناف",
-  (SELECT COUNT(*) FROM transactions) as "عدد المعاملات";
+  (SELECT COUNT(*) FROM transactions) as "عدد المعاملات",
+  (SELECT COUNT(*) FROM daily_audits) as "عدد المراجعات اليومية";
 
 -- عرض قائمة المخازن
 SELECT 

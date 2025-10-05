@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { getWarehouseByIdService, getWarehouseItemsService } from '../services/warehouseService';
-import { getTransactionsByWarehouseService, updateItemQuantityService, createTransactionService, getItemsByWarehouseService } from '../services/itemService';
+import { getTransactionsByWarehouseService, updateItemQuantityService, createTransactionService, getItemsByWarehouseService, createItemService } from '../services/itemService';
 import { getCurrentUser } from '../services/userService';
 import { subscribeToInventoryUpdates, subscribeToTransactions } from '../services/realtimeService';
 import { useNotification } from '../components/NotificationProvider';
