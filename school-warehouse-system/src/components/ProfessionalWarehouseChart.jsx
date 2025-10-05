@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import Chart from 'react-apexcharts';
 import { BarChart } from 'lucide-react';
-import { getAllWarehouses } from '../services/warehouseService';
+import { getAllWarehousesService } from '../services/warehouseService';
 import { getItemsByWarehouseService } from '../services/itemService';
 
 const ProfessionalWarehouseChart = () => {
@@ -15,31 +15,31 @@ const ProfessionalWarehouseChart = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const warehouses = await getAllWarehouses();
+        const warehouses = await getAllWarehousesService();
         const warehouseStats = [];
-        
+
         for (const warehouse of warehouses) {
           const items = await getItemsByWarehouseService(warehouse.id);
           const totalItems = items.reduce((sum, item) => sum + (item.quantity || 0), 0);
-          
+
           warehouseStats.push({
             name: warehouse.name,
             items: totalItems,
             color: getColorForWarehouse(warehouse.id)
           });
         }
-        
+
         // Filter out warehouses with zero items to avoid chart errors
         const nonEmptyWarehouses = warehouseStats.filter(item => item.items > 0);
-        
+
         setWarehouseData(nonEmptyWarehouses);
-        
+
         // Prepare chart data
         const series = [{
           name: 'عدد العناصر',
           data: nonEmptyWarehouses.map(item => item.items)
         }];
-        
+
         const options = {
           chart: {
             type: 'bar',
@@ -149,7 +149,7 @@ const ProfessionalWarehouseChart = () => {
             strokeDashArray: 3
           }
         };
-        
+
         setChartData({ series, options });
         setLoading(false);
       } catch (error) {
@@ -205,11 +205,11 @@ const ProfessionalWarehouseChart = () => {
         <h3 className="text-lg font-semibold text-gray-800">نظرة عامة على مخزون المستودعات</h3>
       </div>
       <div className="h-80 w-full overflow-x-auto">
-        <Chart 
-          options={chartData.options} 
-          series={chartData.series} 
-          type="bar" 
-          height="100%" 
+        <Chart
+          options={chartData.options}
+          series={chartData.series}
+          type="bar"
+          height="100%"
           width="100%"
         />
       </div>

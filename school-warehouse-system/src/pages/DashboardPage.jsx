@@ -9,6 +9,7 @@ import { formatTimeAgo, formatEgyptianDateTime } from '../lib/timeUtils';
 import AdminTransactionOperations from '../components/AdminTransactionOperations';
 import EnhancedWarehouseCard from '../components/EnhancedWarehouseCard';
 import DashboardPieChart from '../components/DashboardPieChart';
+import ProfessionalWarehouseChart from '../components/ProfessionalWarehouseChart';
 import analyticsService from '../services/analyticsService';
 
 function DashboardPage({ user }) {
@@ -24,7 +25,7 @@ function DashboardPage({ user }) {
   const [showAnalytics, setShowAnalytics] = useState(false);
   const [refreshInterval, setRefreshInterval] = useState(null);
   const [showTransactionOperations, setShowTransactionOperations] = useState(false);
-  
+
   // Analytics state
   const [analyticsData, setAnalyticsData] = useState(null);
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
@@ -73,14 +74,14 @@ function DashboardPage({ user }) {
   useEffect(() => {
     const loadData = async () => {
       console.log('Loading dashboard data. Warehouses count:', warehouses.length);
-      
+
       // Only load data if we have warehouses
       if (warehouses.length === 0) {
         console.log('No warehouses, skipping data load');
         setLoading(false);
         return;
       }
-      
+
       try {
         console.log('Starting data load...');
         // Load warehouse stats
@@ -88,7 +89,7 @@ function DashboardPage({ user }) {
         for (const warehouse of warehouses) {
           const items = await getItemsByWarehouseService(warehouse.id);
           const totalItems = items.reduce((sum, item) => sum + (item.quantity || 0), 0);
-          
+
           // Determine status based on item count
           let status = 'normal';
           if (totalItems < 300) {
@@ -96,7 +97,7 @@ function DashboardPage({ user }) {
           } else if (totalItems > 1000) {
             status = 'high';
           }
-          
+
           stats.push({
             id: warehouse.id,
             name: warehouse.name,
@@ -106,16 +107,16 @@ function DashboardPage({ user }) {
         }
         console.log('Setting warehouse stats. Count:', stats.length);
         setWarehouseStats(stats);
-        
+
         // Load recent transactions
         const transactionsData = await getTransactionsService();
         setTransactions(transactionsData);
-        
+
         const activities = transactionsData.slice(0, 5).map(transaction => {
           let type = 'issue';
           let title = 'تم صرف عناصر';
           let icon = <TrendingDown className="h-5 w-5 text-blue-600" />;
-          
+
           if (transaction.transaction_type === 'in') {
             type = 'add';
             title = 'تم إرجاع عناصر';
@@ -125,7 +126,7 @@ function DashboardPage({ user }) {
             title = 'تم تبديل عناصر';
             icon = <Minus className="h-5 w-5 text-purple-600" />;
           }
-          
+
           return {
             id: transaction.id,
             type: type,
@@ -138,12 +139,12 @@ function DashboardPage({ user }) {
           };
         });
         setRecentActivities(activities);
-        
-        
+
+
         // Load low inventory items
         const lowItems = await getLowInventoryItemsService(10);
         setLowInventoryItems(lowItems);
-        
+
         // Load all items
         const allItems = [];
         for (const warehouse of warehouses) {
@@ -151,10 +152,10 @@ function DashboardPage({ user }) {
           allItems.push(...warehouseItems);
         }
         setItems(allItems);
-        
+
         // Load analytics data
         loadAnalyticsData();
-        
+
         setLoading(false);
       } catch (error) {
         console.error('Error loading dashboard data:', error);
@@ -175,17 +176,17 @@ function DashboardPage({ user }) {
   // Set up real-time data synchronization
   useEffect(() => {
     console.log('Setting up real-time data sync. Warehouses:', warehouses.length, 'Low inventory items:', lowInventoryItems.length);
-    
+
     // Only set up interval if we have warehouses
     if (warehouses.length === 0) {
       console.log('No warehouses, skipping interval setup');
       return;
     }
-    
+
     // Refresh data every 30 seconds
     const interval = setInterval(() => {
       console.log('Refreshing dashboard data...');
-      
+
       // Reload warehouse stats
       const reloadWarehouseStats = async () => {
         try {
@@ -193,7 +194,7 @@ function DashboardPage({ user }) {
           for (const warehouse of warehouses) {
             const items = await getItemsByWarehouseService(warehouse.id);
             const totalItems = items.reduce((sum, item) => sum + (item.quantity || 0), 0);
-            
+
             // Determine status based on item count
             let status = 'normal';
             if (totalItems < 300) {
@@ -201,7 +202,7 @@ function DashboardPage({ user }) {
             } else if (totalItems > 1000) {
               status = 'high';
             }
-            
+
             stats.push({
               id: warehouse.id,
               name: warehouse.name,
@@ -215,7 +216,7 @@ function DashboardPage({ user }) {
           console.error('Error refreshing warehouse stats:', error);
         }
       };
-      
+
       // Reload recent activities
       const reloadRecentActivities = async () => {
         try {
@@ -224,7 +225,7 @@ function DashboardPage({ user }) {
             let type = 'issue';
             let title = 'تم صرف عناصر';
             let icon = <TrendingDown className="h-5 w-5 text-blue-600" />;
-            
+
             if (transaction.transaction_type === 'in') {
               type = 'add';
               title = 'تم إرجاع عناصر';
@@ -234,7 +235,7 @@ function DashboardPage({ user }) {
               title = 'تم تبديل عناصر';
               icon = <Minus className="h-5 w-5 text-purple-600" />;
             }
-            
+
             return {
               id: transaction.id,
               type: type,
@@ -251,13 +252,13 @@ function DashboardPage({ user }) {
           console.error('Error refreshing recent activities:', error);
         }
       };
-      
+
       // Reload low inventory items
       const reloadLowInventoryItems = async () => {
         try {
           const lowItems = await getLowInventoryItemsService(10);
           setLowInventoryItems(lowItems);
-          
+
           // Show notification if low inventory items count has changed
           if (lowItems.length !== lowInventoryItems.length) {
             addNotification({
@@ -269,15 +270,15 @@ function DashboardPage({ user }) {
           console.error('Error refreshing low inventory items:', error);
         }
       };
-      
+
       reloadWarehouseStats();
       reloadRecentActivities();
       reloadLowInventoryItems();
       loadAnalyticsData();
     }, 30000); // Refresh every 30 seconds
-    
+
     console.log('Setting new interval');
-    
+
     return () => {
       console.log('Cleaning up interval');
       clearInterval(interval);
@@ -313,7 +314,7 @@ function DashboardPage({ user }) {
             لوحة تحكم مدير النظام
           </h2>
           <div className="flex flex-wrap gap-2">
-            <button 
+            <button
               onClick={() => {
                 console.log('Toggle analytics button clicked. Current state:', showAnalytics);
                 setShowAnalytics(!showAnalytics);
@@ -323,21 +324,21 @@ function DashboardPage({ user }) {
               <PieChart className="h-4 w-4" />
               {showAnalytics ? 'إخفاء التحليلات' : 'عرض التحليلات'}
             </button>
-            <button 
+            <button
               onClick={() => setShowTransactionOperations(!showTransactionOperations)}
               className="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition duration-300 ease-in-out flex items-center gap-1"
             >
               <Plus className="h-4 w-4" />
               {showTransactionOperations ? 'إخفاء العمليات' : 'العمليات الإدارية'}
             </button>
-            <button 
+            <button
               onClick={() => navigate('/reports')}
               className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition duration-300 ease-in-out flex items-center gap-1"
             >
               <FileText className="h-4 w-4" />
               التقارير
             </button>
-            <button 
+            <button
               onClick={() => navigate('/items')}
               className="bg-teal-500 hover:bg-teal-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition duration-300 ease-in-out flex items-center gap-1"
             >
@@ -346,39 +347,39 @@ function DashboardPage({ user }) {
             </button>
           </div>
         </div>
-        
+
         {/* Admin Transaction Operations */}
         {showTransactionOperations && (
           <div className="mb-8">
             <AdminTransactionOperations onTransactionComplete={handleTransactionComplete} />
           </div>
         )}
-        
+
         {/* Enhanced Warehouse Cards with real-time monitoring */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           {console.log('Rendering warehouse cards. Count:', warehouseStats.length, 'Data:', warehouseStats)}
           {warehouseStats.map((warehouse) => (
-            <EnhancedWarehouseCard 
-              key={warehouse.id} 
+            <EnhancedWarehouseCard
+              key={warehouse.id}
               warehouse={warehouse}
               transactions={transactions}
               onClick={() => navigate(`/warehouses/${warehouse.id}`)}
             />
           ))}
         </div>
-        
+
         {/* Analytics Charts */}
         {showAnalytics && analyticsData && (
           <>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-              <DashboardPieChart 
+              <DashboardPieChart
                 title="توزيع الأصناف حسب النوع"
                 data={analyticsData.itemsByCategory}
                 onRefresh={loadAnalyticsData}
                 loading={analyticsLoading}
                 error={analyticsError}
               />
-              <DashboardPieChart 
+              <DashboardPieChart
                 title="توزيع الأصناف حسب المخزن"
                 data={analyticsData.itemsByWarehouse}
                 onRefresh={loadAnalyticsData}
@@ -386,10 +387,10 @@ function DashboardPage({ user }) {
                 error={analyticsError}
               />
             </div>
-            
+
             {/* Additional Analytics Charts */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-              <DashboardPieChart 
+              <DashboardPieChart
                 title="أنواع المعاملات"
                 data={analyticsData.transactionTypes}
                 onRefresh={loadAnalyticsData}
@@ -420,7 +421,7 @@ function DashboardPage({ user }) {
             </div>
           </>
         )}
-        
+
         {/* Low Inventory Alerts */}
         {lowInventoryItems.length > 0 && (
           <div className="mb-8">
@@ -433,7 +434,7 @@ function DashboardPage({ user }) {
                 </div>
               </div>
             </div>
-            
+
             <div className="bg-white rounded-lg shadow overflow-hidden overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
@@ -456,7 +457,7 @@ function DashboardPage({ user }) {
             </div>
           </div>
         )}
-        
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 bg-gray-50 rounded-xl p-6 shadow-sm">
             <h3 className="text-lg font-semibold text-blue-800 mb-4 flex items-center gap-2">
@@ -467,11 +468,10 @@ function DashboardPage({ user }) {
               {recentActivities.length > 0 ? (
                 recentActivities.map((activity) => (
                   <div key={activity.id} className="flex items-start border-b border-gray-200 pb-3 last:border-0 last:pb-0">
-                    <div className={`p-2 rounded-lg mr-3 ${
-                      activity.type === 'issue' ? 'bg-blue-100' : 
-                      activity.type === 'add' ? 'bg-teal-100' : 
-                      activity.type === 'exchange' ? 'bg-purple-100' : 'bg-yellow-100'
-                    }`}>
+                    <div className={`p-2 rounded-lg mr-3 ${activity.type === 'issue' ? 'bg-blue-100' :
+                        activity.type === 'add' ? 'bg-teal-100' :
+                          activity.type === 'exchange' ? 'bg-purple-100' : 'bg-yellow-100'
+                      }`}>
                       {activity.icon}
                     </div>
                     <div>
@@ -492,7 +492,7 @@ function DashboardPage({ user }) {
               )}
             </div>
           </div>
-          
+
           <div className="bg-gray-50 rounded-xl p-6 shadow-sm">
             <h3 className="text-lg font-semibold text-blue-800 mb-4 flex items-center gap-2">
               <BarChart3 className="h-5 w-5" />
@@ -502,7 +502,7 @@ function DashboardPage({ user }) {
           </div>
         </div>
       </div>
-      
+
       {/* New Admin Dashboard Component - temporarily removed to avoid conflicts */}
       {/* <AdminDashboard user={user} /> */}
     </div>
