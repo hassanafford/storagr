@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { BarChart3, PieChart, FileText, Plus, TrendingUp, AlertTriangle, User, Calendar, Package, TrendingDown, Minus } from 'lucide-react';
+import { BarChart3, PieChart, FileText, Plus, TrendingUp, AlertTriangle, Package, TrendingDown, Minus } from 'lucide-react';
 import { useNotification } from '../components/NotificationProvider';
 import { getAllWarehousesService } from '../services/warehouseService';
-import { getTransactionsService, getLowInventoryItemsService, getItemsByWarehouseService } from '../services/itemService';
+import { getTransactionsService, getLowInventoryItemsService } from '../services/itemService';
 import { formatTimeAgo } from '../lib/timeUtils';
 import AdminTransactionOperations from '../components/AdminTransactionOperations';
 import EnhancedWarehouseCard from '../components/EnhancedWarehouseCard';
@@ -19,7 +19,6 @@ function DashboardPage({ user }) {
   const [lowInventoryItems, setLowInventoryItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [warehouses, setWarehouses] = useState([]);
-  const [items, setItems] = useState([]);
   const [transactions, setTransactions] = useState([]);
   const [showAnalytics, setShowAnalytics] = useState(false);
   const [showTransactionOperations, setShowTransactionOperations] = useState(false);
@@ -72,10 +71,8 @@ function DashboardPage({ user }) {
         analyticsService.getAdminAnalytics()
       ]);
 
-      // Process warehouse stats
-      const stats = [];
-      for (const warehouse of warehouses) {
-        // We'll get the item count from the analytics data for better performance
+      // Process warehouse stats using analytics data for better performance
+      const stats = warehouses.map(warehouse => {
         const warehouseData = analytics.itemsByWarehouse.find(w => w.label === warehouse.name);
         const totalItems = warehouseData ? warehouseData.value : 0;
 
@@ -86,13 +83,13 @@ function DashboardPage({ user }) {
           status = 'high';
         }
 
-        stats.push({
+        return {
           id: warehouse.id,
           name: warehouse.name,
           items: totalItems,
           status: status
-        });
-      }
+        };
+      });
       
       console.log('Setting warehouse stats. Count:', stats.length);
       setWarehouseStats(stats);

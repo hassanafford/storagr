@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { BarChart3, Package, TrendingUp, TrendingDown, AlertTriangle, User, Calendar, FileText, Clock, Search, RefreshCw } from 'lucide-react';
 import { useNotification } from '../components/NotificationProvider';
@@ -296,7 +296,9 @@ function IssueItemsForm({ addNotification, user, warehouse }) {
   const [recipient, setRecipient] = useState('');
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(true);
-  const [refreshInterval, setRefreshInterval] = useState(null);
+  
+  // Ref to track if interval is already set up
+  const intervalRef = useRef(null);
 
   // Load items for the employee's warehouse
   useEffect(() => {
@@ -319,17 +321,21 @@ function IssueItemsForm({ addNotification, user, warehouse }) {
     if (warehouse) {
       loadItems();
 
+      // Clear any existing interval
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+
       // Set up real-time data synchronization
-      const interval = setInterval(() => {
+      intervalRef.current = setInterval(() => {
         loadItems();
       }, 30000); // Refresh every 30 seconds
-
-      setRefreshInterval(interval);
     }
 
     return () => {
-      if (refreshInterval) {
-        clearInterval(refreshInterval);
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
       }
     };
   }, [warehouse]);
@@ -472,7 +478,9 @@ function ReturnItemsForm({ addNotification, user, warehouse }) {
   const [condition, setCondition] = useState('good');
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(true);
-  const [refreshInterval, setRefreshInterval] = useState(null);
+  
+  // Ref to track if interval is already set up
+  const intervalRef = useRef(null);
 
   // Load items for the employee's warehouse
   useEffect(() => {
@@ -495,17 +503,21 @@ function ReturnItemsForm({ addNotification, user, warehouse }) {
     if (warehouse) {
       loadItems();
 
+      // Clear any existing interval
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+
       // Set up real-time data synchronization
-      const interval = setInterval(() => {
+      intervalRef.current = setInterval(() => {
         loadItems();
       }, 30000); // Refresh every 30 seconds
-
-      setRefreshInterval(interval);
     }
 
     return () => {
-      if (refreshInterval) {
-        clearInterval(refreshInterval);
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
       }
     };
   }, [warehouse]);
@@ -656,7 +668,9 @@ function ExchangeItemsForm({ addNotification, user, warehouse }) {
   const [recipient, setRecipient] = useState('');
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(true);
-  const [refreshInterval, setRefreshInterval] = useState(null);
+  
+  // Ref to track if interval is already set up
+  const intervalRef = useRef(null);
 
   // Load items for the employee's warehouse
   useEffect(() => {
@@ -679,17 +693,21 @@ function ExchangeItemsForm({ addNotification, user, warehouse }) {
     if (warehouse) {
       loadItems();
 
+      // Clear any existing interval
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+
       // Set up real-time data synchronization
-      const interval = setInterval(() => {
+      intervalRef.current = setInterval(() => {
         loadItems();
       }, 30000); // Refresh every 30 seconds
-
-      setRefreshInterval(interval);
     }
 
     return () => {
-      if (refreshInterval) {
-        clearInterval(refreshInterval);
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
       }
     };
   }, [warehouse]);
@@ -882,7 +900,9 @@ function ExchangeItemsForm({ addNotification, user, warehouse }) {
 function TransactionLog({ addNotification, user, warehouse }) {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [refreshInterval, setRefreshInterval] = useState(null);
+  
+  // Ref to track if interval is already set up
+  const intervalRef = useRef(null);
 
   useEffect(() => {
     const loadTransactions = async () => {
@@ -904,17 +924,21 @@ function TransactionLog({ addNotification, user, warehouse }) {
     if (warehouse) {
       loadTransactions();
 
+      // Clear any existing interval
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+
       // Set up real-time data synchronization
-      const interval = setInterval(() => {
+      intervalRef.current = setInterval(() => {
         loadTransactions();
       }, 30000); // Refresh every 30 seconds
-
-      setRefreshInterval(interval);
     }
 
     return () => {
-      if (refreshInterval) {
-        clearInterval(refreshInterval);
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
       }
     };
   }, [warehouse]);

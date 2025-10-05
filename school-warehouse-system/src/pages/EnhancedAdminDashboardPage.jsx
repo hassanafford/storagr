@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BarChart3, PieChart, FileText, TrendingUp, TrendingDown, Building, AlertTriangle, Package, RefreshCw, CheckCircle } from 'lucide-react';
 import { useNotification } from '../components/NotificationProvider';
@@ -19,6 +19,9 @@ const EnhancedAdminDashboardPage = ({ user }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [lastUpdated, setLastUpdated] = useState(getEgyptianTime());
+  
+  // Ref to track if interval is already set up
+  const intervalRef = useRef(null);
 
   // Load dashboard data
   const loadDashboardData = async () => {
@@ -64,14 +67,22 @@ const EnhancedAdminDashboardPage = ({ user }) => {
     
     dashboardService.onDataUpdate(handleDataUpdate);
     
+    // Clear any existing interval
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+    }
+    
     // Set up periodic refresh (every 30 seconds)
-    const interval = setInterval(() => {
+    intervalRef.current = setInterval(() => {
       loadDashboardData();
     }, 30000);
     
     return () => {
       dashboardService.removeDataUpdateCallback(handleDataUpdate);
-      clearInterval(interval);
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
     };
   }, []);
 
