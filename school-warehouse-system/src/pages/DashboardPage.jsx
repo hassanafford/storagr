@@ -38,25 +38,33 @@ function DashboardPage({ user }) {
         const data = await getAllWarehousesService();
         console.log('Warehouses loaded:', data.length);
         setWarehouses(data);
+        if (data.length === 0) {
+          setLoading(false); // If no warehouses, stop loading
+        }
       } catch (error) {
         console.error('Error loading warehouses:', error);
         addNotification({
           message: 'حدث خطأ أثناء تحميل بيانات المخازن',
           type: 'error'
         });
+        setLoading(false); // Stop loading on error
       }
     };
 
     loadWarehouses();
-  }, []);
-
-
+  }, [addNotification]);
 
   const loadDashboardData = useCallback(async () => {
     console.log('Loading dashboard data. Warehouses count:', warehouses.length);
 
     if (warehouses.length === 0) {
-      console.log('No warehouses, skipping data load');
+      console.log('No warehouses, showing empty state');
+      // Even if no warehouses, we should still complete loading
+      setWarehouseStats([]);
+      setTransactions([]);
+      setLowInventoryItems([]);
+      setAnalyticsData(null);
+      setRecentActivities([]);
       setLoading(false);
       return;
     }
@@ -69,13 +77,39 @@ function DashboardPage({ user }) {
         getTransactionsService(),
         getLowInventoryItemsService(10),
         analyticsService.getAdminAnalytics()
-      ]);
+      ]).catch(async (error) => {
+        console.error('Error loading dashboard data, trying without analytics:', error);
+        // Try to load without analytics as fallback
+        const [transactionsData, lowItems] = await Promise.all([
+          getTransactionsService(),
+          getLowInventoryItemsService(10)
+        ]);
+        return [transactionsData, lowItems, null];
+      });
+
+      console.log('Data loaded:', {
+        transactions: transactionsData.length,
+        lowItems: lowItems.length,
+        analytics: !!analytics,
+        warehouses: warehouses.length
+      });
 
       // Process warehouse stats using analytics data for better performance
       const stats = warehouses.map(warehouse => {
-        const warehouseData = analytics.itemsByWarehouse.find(w => w.label === warehouse.name);
-        const totalItems = warehouseData ? warehouseData.value : 0;
+        let totalItems = 0;
+        
+        // If we have analytics data, use it
+        if (analytics && analytics.itemsByWarehouse) {
+          const warehouseData = analytics.itemsByWarehouse.find(w => w.label === warehouse.name);
+          totalItems = warehouseData ? warehouseData.value : 0;
+        }
+        
+        console.log('Processing warehouse:', {
+          warehouse: warehouse.name,
+          totalItems: totalItems
+        });
 
+        // If no analytics data found, we still want to show the warehouse
         let status = 'normal';
         if (totalItems < 300) {
           status = 'low';
@@ -91,7 +125,7 @@ function DashboardPage({ user }) {
         };
       });
       
-      console.log('Setting warehouse stats. Count:', stats.length);
+      console.log('Setting warehouse stats. Count:', stats.length, 'Stats:', stats);
       setWarehouseStats(stats);
       setTransactions(transactionsData);
       setLowInventoryItems(lowItems);
@@ -139,14 +173,17 @@ function DashboardPage({ user }) {
       });
       setLoading(false);
     }
-  }, [formatTransactionTimeAgo, addNotification]);
+  }, [warehouses, formatTransactionTimeAgo, addNotification]);
 
   useEffect(() => {
     console.log('Data loading useEffect triggered. Warehouses:', warehouses.length);
     if (warehouses.length > 0) {
       loadDashboardData();
+    } else {
+      // If no warehouses, we should still complete loading
+      setLoading(false);
     }
-  }, [warehouses.length]);
+  }, [warehouses]);
 
   // Set up real-time data synchronization
   useEffect(() => {
@@ -178,7 +215,7 @@ function DashboardPage({ user }) {
         intervalRef.current = null;
       }
     };
-  }, [warehouses.length]);
+  }, [warehouses, loadDashboardData]);
 
   const handleTransactionComplete = () => {
     // Reload all dashboard data after a transaction
@@ -247,14 +284,32 @@ function DashboardPage({ user }) {
 
         {/* Enhanced Warehouse Cards with real-time monitoring */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          {warehouseStats.map((warehouse) => (
-            <EnhancedWarehouseCard
-              key={warehouse.id}
-              warehouse={warehouse}
-              transactions={transactions}
-              onClick={() => navigate(`/warehouses/${warehouse.id}`)}
-            />
-          ))}
+          {warehouseStats.length > 0 ? (
+            warehouseStats.map((warehouse) => (
+              <EnhancedWarehouseCard
+                key={warehouse.id}
+                warehouse={warehouse}
+                transactions={transactions}
+                onClick={() => navigate(`/warehouses/${warehouse.id}`)}
+              />
+            ))
+          ) : (
+            <div className="col-span-full text-center py-8 text-gray-500">
+              {warehouses.length > 0 ? (
+                <p>جاري تحميل بيانات المخازن...</p>
+              ) : (
+                <div>
+                  <p className="mb-2">لا توجد مخازن مسجلة في النظام</p>
+                  <button 
+                    onClick={() => navigate('/warehouses')}
+                    className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition duration-300"
+                  >
+                    إضافة مخزن جديد
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Analytics Charts */}

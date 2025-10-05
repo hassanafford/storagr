@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { Badge } from './ui/badge';
 import { Package, TrendingUp, TrendingDown, Minus, AlertCircle, Clock, User } from 'lucide-react';
 import { getTransactionsByWarehouse } from '../services/itemService';
 import { formatTimeAgo } from '../lib/timeUtils';
@@ -8,6 +8,8 @@ import { formatTimeAgo } from '../lib/timeUtils';
 const EnhancedWarehouseCard = ({ warehouse, onClick, transactions = [] }) => {
   const [warehouseTransactions, setWarehouseTransactions] = useState([]);
   const [loading, setLoading] = useState(false);
+
+  console.log('Rendering EnhancedWarehouseCard:', warehouse);
 
   // Determine status color and label
   const getStatusConfig = (status) => {
@@ -47,9 +49,15 @@ const EnhancedWarehouseCard = ({ warehouse, onClick, transactions = [] }) => {
 
   // Get recent transactions for this warehouse
   const getRecentTransactions = () => {
-    return transactions
-      .filter(t => t.warehouse_id == warehouse.id)
+    console.log('Filtering transactions for warehouse:', warehouse.id, 'Total transactions:', transactions.length);
+    const filtered = transactions
+      .filter(t => {
+        console.log('Checking transaction:', t.warehouse_id, '==', warehouse.id, '=', t.warehouse_id == warehouse.id);
+        return t.warehouse_id == warehouse.id;
+      })
       .slice(0, 3); // Get last 3 transactions
+    console.log('Filtered transactions:', filtered.length);
+    return filtered;
   };
 
   const recentTransactions = getRecentTransactions();
@@ -62,6 +70,9 @@ const EnhancedWarehouseCard = ({ warehouse, onClick, transactions = [] }) => {
   // Get transaction type label
   const getTransactionTypeLabel = (type) => {
     switch (type) {
+      case 'in': return 'إرجاع';
+      case 'out': return 'صرف';
+      case 'exchange': return 'تبديل';
       case 'issue': return 'صرف';
       case 'return': return 'إرجاع';
       case 'exchange_out': return 'صرف (تبديل)';
@@ -75,6 +86,9 @@ const EnhancedWarehouseCard = ({ warehouse, onClick, transactions = [] }) => {
   // Get transaction type color
   const getTransactionTypeColor = (type) => {
     switch (type) {
+      case 'in': return 'text-green-600';
+      case 'out': return 'text-red-600';
+      case 'exchange': return 'text-purple-600';
       case 'issue': return 'text-red-600';
       case 'return': return 'text-green-600';
       case 'exchange_out': return 'text-purple-600';
