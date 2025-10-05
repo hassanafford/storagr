@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BarChart3, PieChart, FileText, Plus, TrendingUp, AlertTriangle, User, Calendar, Package, TrendingDown, Minus } from 'lucide-react';
 import { useNotification } from '../components/NotificationProvider';
@@ -31,6 +31,9 @@ function DashboardPage({ user }) {
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
   const [analyticsError, setAnalyticsError] = useState(null);
 
+  // Ref to track if interval is already set up
+  const intervalRef = useRef(null);
+
   useEffect(() => {
     const loadWarehouses = async () => {
       try {
@@ -51,7 +54,7 @@ function DashboardPage({ user }) {
   }, []);
 
   // Load analytics data
-  const loadAnalyticsData = async () => {
+  const loadAnalyticsData = useCallback(async () => {
     try {
       console.log('Loading analytics data...');
       setAnalyticsLoading(true);
@@ -69,229 +72,145 @@ function DashboardPage({ user }) {
     } finally {
       setAnalyticsLoading(false);
     }
-  };
+  }, [addNotification]);
+
+  const loadDashboardData = useCallback(async () => {
+    console.log('Loading dashboard data. Warehouses count:', warehouses.length);
+
+    if (warehouses.length === 0) {
+      console.log('No warehouses, skipping data load');
+      setLoading(false);
+      return;
+    }
+
+    try {
+      console.log('Starting data load...');
+      const stats = [];
+      for (const warehouse of warehouses) {
+        const items = await getItemsByWarehouseService(warehouse.id);
+        const totalItems = items.reduce((sum, item) => sum + (item.quantity || 0), 0);
+
+        let status = 'normal';
+        if (totalItems < 300) {
+          status = 'low';
+        } else if (totalItems > 1000) {
+          status = 'high';
+        }
+
+        stats.push({
+          id: warehouse.id,
+          name: warehouse.name,
+          items: totalItems,
+          status: status
+        });
+      }
+      console.log('Setting warehouse stats. Count:', stats.length);
+      setWarehouseStats(stats);
+
+      const transactionsData = await getTransactionsService();
+      setTransactions(transactionsData);
+
+      const activities = transactionsData.slice(0, 5).map(transaction => {
+        let type = 'issue';
+        let title = 'تم صرف عناصر';
+        let icon = <TrendingDown className="h-5 w-5 text-blue-600" />;
+
+        if (transaction.transaction_type === 'in') {
+          type = 'add';
+          title = 'تم استلام عناصر';
+          icon = <TrendingUp className="h-5 w-5 text-teal-600" />;
+        } else if (transaction.transaction_type === 'out') {
+          type = 'issue';
+          title = 'تم صرف عناصر';
+          icon = <TrendingDown className="h-5 w-5 text-blue-600" />;
+        } else if (transaction.transaction_type === 'exchange') {
+          type = 'exchange';
+          title = 'تم تبديل عناصر';
+          icon = <Minus className="h-5 w-5 text-purple-600" />;
+        }
+
+        return {
+          id: transaction.id,
+          type: type,
+          title: title,
+          description: `${Math.abs(transaction.quantity)} ${transaction.item_name} - ${transaction.recipient}`,
+          time: formatTransactionTimeAgo(transaction.created_at),
+          warehouse: transaction.warehouse_name,
+          user: transaction.user_name,
+          icon: icon
+        };
+      });
+      setRecentActivities(activities);
+
+      const lowItems = await getLowInventoryItemsService(10);
+      setLowInventoryItems(lowItems);
+
+      const allItems = [];
+      for (const warehouse of warehouses) {
+        const warehouseItems = await getItemsByWarehouseService(warehouse.id);
+        allItems.push(...warehouseItems);
+      }
+      setItems(allItems);
+
+      loadAnalyticsData();
+
+      setLoading(false);
+    } catch (error) {
+      console.error('Error loading dashboard data:', error);
+      addNotification({
+        message: 'حدث خطأ أثناء تحميل بيانات لوحة التحكم',
+        type: 'error'
+      });
+      setLoading(false);
+    }
+  }, [warehouses, addNotification, loadAnalyticsData]);
 
   useEffect(() => {
-    const loadData = async () => {
-      console.log('Loading dashboard data. Warehouses count:', warehouses.length);
-
-      // Only load data if we have warehouses
-      if (warehouses.length === 0) {
-        console.log('No warehouses, skipping data load');
-        setLoading(false);
-        return;
-      }
-
-      try {
-        console.log('Starting data load...');
-        // Load warehouse stats
-        const stats = [];
-        for (const warehouse of warehouses) {
-          const items = await getItemsByWarehouseService(warehouse.id);
-          const totalItems = items.reduce((sum, item) => sum + (item.quantity || 0), 0);
-
-          // Determine status based on item count
-          let status = 'normal';
-          if (totalItems < 300) {
-            status = 'low';
-          } else if (totalItems > 1000) {
-            status = 'high';
-          }
-
-          stats.push({
-            id: warehouse.id,
-            name: warehouse.name,
-            items: totalItems,
-            status: status
-          });
-        }
-        console.log('Setting warehouse stats. Count:', stats.length);
-        setWarehouseStats(stats);
-
-        // Load recent transactions
-        const transactionsData = await getTransactionsService();
-        setTransactions(transactionsData);
-
-        const activities = transactionsData.slice(0, 5).map(transaction => {
-          let type = 'issue';
-          let title = 'تم صرف عناصر';
-          let icon = <TrendingDown className="h-5 w-5 text-blue-600" />;
-
-          if (transaction.transaction_type === 'in') {
-            type = 'add';
-            title = 'تم إرجاع عناصر';
-            icon = <TrendingUp className="h-5 w-5 text-teal-600" />;
-          } else if (transaction.transaction_type === 'out') {
-            type = 'exchange';
-            title = 'تم تبديل عناصر';
-            icon = <Minus className="h-5 w-5 text-purple-600" />;
-          }
-
-          return {
-            id: transaction.id,
-            type: type,
-            title: title,
-            description: `${Math.abs(transaction.quantity)} ${transaction.item_name} - ${transaction.recipient}`,
-            time: formatTimeAgo(transaction.created_at),
-            warehouse: transaction.warehouse_name,
-            user: transaction.user_name,
-            icon: icon
-          };
-        });
-        setRecentActivities(activities);
-
-
-        // Load low inventory items
-        const lowItems = await getLowInventoryItemsService(10);
-        setLowInventoryItems(lowItems);
-
-        // Load all items
-        const allItems = [];
-        for (const warehouse of warehouses) {
-          const warehouseItems = await getItemsByWarehouseService(warehouse.id);
-          allItems.push(...warehouseItems);
-        }
-        setItems(allItems);
-
-        // Load analytics data
-        loadAnalyticsData();
-
-        setLoading(false);
-      } catch (error) {
-        console.error('Error loading dashboard data:', error);
-        addNotification({
-          message: 'حدث خطأ أثناء تحميل بيانات لوحة التحكم',
-          type: 'error'
-        });
-        setLoading(false);
-      }
-    };
-
     console.log('Data loading useEffect triggered. Warehouses:', warehouses.length);
     if (warehouses.length > 0) {
-      loadData();
+      loadDashboardData();
     }
-  }, [warehouses]);
+  }, []);
 
   // Set up real-time data synchronization
   useEffect(() => {
-    console.log('Setting up real-time data sync. Warehouses:', warehouses.length, 'Low inventory items:', lowInventoryItems.length);
+    // Clear any existing interval
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
 
-    // Only set up interval if we have warehouses
+    console.log('Setting up real-time data sync. Warehouses:', warehouses.length);
+
     if (warehouses.length === 0) {
       console.log('No warehouses, skipping interval setup');
       return;
     }
 
-    // Refresh data every 30 seconds
-    const interval = setInterval(() => {
+    intervalRef.current = setInterval(() => {
       console.log('Refreshing dashboard data...');
-
-      // Reload warehouse stats
-      const reloadWarehouseStats = async () => {
-        try {
-          const stats = [];
-          for (const warehouse of warehouses) {
-            const items = await getItemsByWarehouseService(warehouse.id);
-            const totalItems = items.reduce((sum, item) => sum + (item.quantity || 0), 0);
-
-            // Determine status based on item count
-            let status = 'normal';
-            if (totalItems < 300) {
-              status = 'low';
-            } else if (totalItems > 1000) {
-              status = 'high';
-            }
-
-            stats.push({
-              id: warehouse.id,
-              name: warehouse.name,
-              items: totalItems,
-              status: status
-            });
-          }
-          console.log('Updating warehouse stats. New count:', stats.length);
-          setWarehouseStats(stats);
-        } catch (error) {
-          console.error('Error refreshing warehouse stats:', error);
-        }
-      };
-
-      // Reload recent activities
-      const reloadRecentActivities = async () => {
-        try {
-          const transactions = await getTransactionsService();
-          const activities = transactions.slice(0, 5).map(transaction => {
-            let type = 'issue';
-            let title = 'تم صرف عناصر';
-            let icon = <TrendingDown className="h-5 w-5 text-blue-600" />;
-
-            if (transaction.transaction_type === 'in') {
-              type = 'add';
-              title = 'تم إرجاع عناصر';
-              icon = <TrendingUp className="h-5 w-5 text-teal-600" />;
-            } else if (transaction.transaction_type === 'out') {
-              type = 'exchange';
-              title = 'تم تبديل عناصر';
-              icon = <Minus className="h-5 w-5 text-purple-600" />;
-            }
-
-            return {
-              id: transaction.id,
-              type: type,
-              title: title,
-              description: `${Math.abs(transaction.quantity)} ${transaction.item_name} - ${transaction.recipient}`,
-              time: formatTimeAgo(transaction.created_at),
-              warehouse: transaction.warehouse_name,
-              user: transaction.user_name,
-              icon: icon
-            };
-          });
-          setRecentActivities(activities);
-        } catch (error) {
-          console.error('Error refreshing recent activities:', error);
-        }
-      };
-
-      // Reload low inventory items
-      const reloadLowInventoryItems = async () => {
-        try {
-          const lowItems = await getLowInventoryItemsService(10);
-          setLowInventoryItems(lowItems);
-
-          // Show notification if low inventory items count has changed
-          if (lowItems.length !== lowInventoryItems.length) {
-            addNotification({
-              message: `هناك ${lowItems.length} عنصر بكمية منخفضة في المخازن`,
-              type: 'warning'
-            });
-          }
-        } catch (error) {
-          console.error('Error refreshing low inventory items:', error);
-        }
-      };
-
-      reloadWarehouseStats();
-      reloadRecentActivities();
-      reloadLowInventoryItems();
+      loadDashboardData();
       loadAnalyticsData();
-    }, 30000); // Refresh every 30 seconds
+    }, 30000);
 
     console.log('Setting new interval');
 
     return () => {
       console.log('Cleaning up interval');
-      clearInterval(interval);
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
     };
-  }, [warehouses, lowInventoryItems]);
+  }, [loadDashboardData, loadAnalyticsData]);
 
-  const formatTimeAgo = (dateString) => {
+  const formatTransactionTimeAgo = useCallback((dateString) => {
     return formatTimeAgo(dateString);
-  };
+  }, []);
 
   const handleTransactionComplete = () => {
     // Reload all dashboard data after a transaction
-    loadData();
+    loadDashboardData();
     loadAnalyticsData();
   };
 
@@ -469,8 +388,8 @@ function DashboardPage({ user }) {
                 recentActivities.map((activity) => (
                   <div key={activity.id} className="flex items-start border-b border-gray-200 pb-3 last:border-0 last:pb-0">
                     <div className={`p-2 rounded-lg mr-3 ${activity.type === 'issue' ? 'bg-blue-100' :
-                        activity.type === 'add' ? 'bg-teal-100' :
-                          activity.type === 'exchange' ? 'bg-purple-100' : 'bg-yellow-100'
+                      activity.type === 'add' ? 'bg-teal-100' :
+                        activity.type === 'exchange' ? 'bg-purple-100' : 'bg-yellow-100'
                       }`}>
                       {activity.icon}
                     </div>
