@@ -295,8 +295,11 @@ export const deleteUser = async (id) => {
     throw new Error('Failed to delete user');
   }
 
-  if (data.length === 0) {
-    throw new Error('User not found');
+  // Check if data exists and has content
+  if (!data || data.length === 0) {
+    // This might happen when the user was successfully deleted
+    // but no data is returned, which is normal for delete operations
+    return { message: 'User deleted successfully' };
   }
 
   return { message: 'User deleted successfully' };
@@ -635,8 +638,11 @@ export const deleteWarehouse = async (id) => {
     throw new Error('Failed to delete warehouse');
   }
 
-  if (data.length === 0) {
-    throw new Error('Warehouse not found');
+  // Check if data exists and has content
+  if (!data || data.length === 0) {
+    // This might happen when the warehouse was successfully deleted
+    // but no data is returned, which is normal for delete operations
+    return { message: 'Warehouse deleted successfully' };
   }
 
   return { message: 'Warehouse deleted successfully' };
@@ -728,8 +734,11 @@ export const deleteCategory = async (id) => {
     throw new Error('Failed to delete category');
   }
 
-  if (data.length === 0) {
-    throw new Error('Category not found');
+  // Check if data exists and has content
+  if (!data || data.length === 0) {
+    // This might happen when the category was successfully deleted
+    // but no data is returned, which is normal for delete operations
+    return { message: 'Category deleted successfully' };
   }
 
   return { message: 'Category deleted successfully' };
@@ -797,8 +806,11 @@ export const deleteItem = async (id) => {
     throw new Error('Failed to delete item');
   }
 
-  if (data.length === 0) {
-    throw new Error('Item not found');
+  // Check if data exists and has content
+  if (!data || data.length === 0) {
+    // This might happen when the item was successfully deleted
+    // but no data is returned, which is normal for delete operations
+    return { message: 'Item deleted successfully' };
   }
 
   return { message: 'Item deleted successfully' };

@@ -243,25 +243,122 @@
   .tabs {
     flex-wrap: wrap;
   }
+  
+  /* Mobile table adjustments */
+  .table-header-blue th {
+    padding: 10px 12px;
+    font-size: 0.7rem;
+  }
+  
+  .table-cell {
+    padding: 10px 12px;
+    font-size: 0.8rem;
+  }
 }
 
-/* Custom table styling for consistent blue headers with white borders */
+/* Unified table styling system for consistent appearance across all tables */
+
+/* Base table container */
+.table-container {
+  width: 100%;
+  overflow-x: auto;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Base table styles */
+.unified-table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: white;
+}
+
+/* Table header with blue background and white text */
 .table-header-blue {
   background-color: #3498db; /* Blue header */
   color: white;
-  border-color: white;
 }
 
 .table-header-blue th {
   color: white;
   border-color: white;
   text-align: right;
+  padding: 12px 16px;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+}
+
+/* Table body rows */
+.table-body {
+  background-color: white;
+}
+
+.table-body tr {
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.table-body tr:hover {
+  background-color: #f8fafc;
+}
+
+.table-body tr:last-child {
+  border-bottom: none;
+}
+
+/* Table cells */
+.table-cell {
+  padding: 12px 16px;
+  font-size: 0.875rem;
+  color: #334155;
 }
 
 .table-cell-right {
   text-align: right;
 }
 
+.table-cell-center {
+  text-align: center;
+}
+
+.table-cell-left {
+  text-align: left;
+}
+
+/* Table borders */
 .table-border-white {
   border-color: white;
+}
+
+.table-border-gray {
+  border-color: #e2e8f0;
+}
+
+/* Responsive table wrapper */
+.table-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Mobile table card view */
+.table-card {
+  background-color: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.table-card:hover {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+}
+
+/* Empty table state */
+.table-empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: #94a3b8;
+  font-size: 0.875rem;
 }

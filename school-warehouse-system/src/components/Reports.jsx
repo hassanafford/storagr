@@ -228,33 +228,33 @@ const Reports = () => {
       
           {/* Transactions Table */}
           {/* Desktop Table View */}
-          <div className="hidden md:block overflow-x-auto">
-            <table className="min-w-full divide-y divide-white">
+          <div className="hidden md:block table-container">
+            <table className="unified-table">
               <thead className="table-header-blue">
                 <tr>
-                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">العنصر</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">المخزن</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">المستخدم</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">النوع</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">الكمية</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">المستلم</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">التاريخ</th>
+                  <th className="table-cell table-cell-right">العنصر</th>
+                  <th className="table-cell table-cell-right">المخزن</th>
+                  <th className="table-cell table-cell-right">المستخدم</th>
+                  <th className="table-cell table-cell-right">النوع</th>
+                  <th className="table-cell table-cell-right">الكمية</th>
+                  <th className="table-cell table-cell-right">المستلم</th>
+                  <th className="table-cell table-cell-right">التاريخ</th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-white">
+              <tbody className="table-body">
                 {filteredTransactions.length > 0 ? (
                   filteredTransactions.map((transaction) => (
                     <tr key={transaction.id}>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 table-cell-right">
+                      <td className="table-cell table-cell-right">
                         {transaction.items?.name || 'غير محدد'}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 table-cell-right">
+                      <td className="table-cell table-cell-right">
                         {transaction.items?.warehouses?.name || 'غير محدد'}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 table-cell-right">
+                      <td className="table-cell table-cell-right">
                         {transaction.users?.name || 'غير محدد'}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm table-cell-right">
+                      <td className="table-cell table-cell-right">
                         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                           transaction.transaction_type === 'out' ? 'bg-blue-100 text-blue-800' :
                           transaction.transaction_type === 'in' ? 'bg-green-100 text-green-800' :
@@ -263,20 +263,20 @@ const Reports = () => {
                           {getTransactionTypeLabel(transaction.transaction_type)}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 table-cell-right">
+                      <td className="table-cell table-cell-right">
                         {transaction.quantity}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 table-cell-right">
+                      <td className="table-cell table-cell-right">
                         {transaction.recipient}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 table-cell-right">
+                      <td className="table-cell table-cell-right">
                         {formatDate(transaction.created_at)}
                       </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="7" className="px-6 py-4 text-center text-sm text-gray-500">
+                    <td colSpan="7" className="table-cell text-center">
                       لا توجد معاملات مطابقة للمعايير
                     </td>
                   </tr>
@@ -290,7 +290,7 @@ const Reports = () => {
             {filteredTransactions.length > 0 ? (
               <div className="space-y-4">
                 {filteredTransactions.map((transaction) => (
-                  <div key={transaction.id} className="border border-gray-200 rounded-lg p-4 bg-white shadow-sm">
+                  <div key={transaction.id} className="table-card">
                     <div className="grid grid-cols-2 gap-2">
                       <div className="font-medium text-gray-700">العنصر:</div>
                       <div className="text-gray-900">{transaction.items?.name || 'غير محدد'}</div>
@@ -325,7 +325,7 @@ const Reports = () => {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-8 text-gray-500">
+              <div className="table-empty-state">
                 <p>لا توجد معاملات مطابقة للمعايير</p>
               </div>
             )}

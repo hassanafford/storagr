@@ -3,6 +3,7 @@ import { useNotification } from '../components/NotificationProvider';
 import { getTransactionsService } from '../services/itemService';
 import { getAllWarehouses } from '../services/warehouseService';
 import { getLowInventoryItemsService } from '../services/itemService';
+import { formatEgyptianDateTime } from '../lib/timeUtils';
 
 function ReportsPage() {
   const { addNotification } = useNotification();
@@ -82,8 +83,7 @@ function ReportsPage() {
   };
 
   const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('ar-SA');
+    return formatEgyptianDateTime(dateString);
   };
 
   if (loading) {

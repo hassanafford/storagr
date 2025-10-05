@@ -365,27 +365,27 @@ function ItemsPage() {
       )}
 
       {/* Desktop Table View */}
-      <div className="hidden md:block overflow-x-auto">
-        <table className="min-w-full divide-y divide-white">
+      <div className="hidden md:block table-container">
+        <table className="unified-table">
           <thead className="table-header-blue">
             <tr>
-              <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">اسم العنصر</th>
-              <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">الفئة</th>
-              <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">المخزن</th>
-              <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">الكمية</th>
-              <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">الوصف</th>
-              <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">الإجراءات</th>
+              <th className="table-cell table-cell-right">اسم العنصر</th>
+              <th className="table-cell table-cell-right">الفئة</th>
+              <th className="table-cell table-cell-right">المخزن</th>
+              <th className="table-cell table-cell-right">الكمية</th>
+              <th className="table-cell table-cell-right">الوصف</th>
+              <th className="table-cell table-cell-right">الإجراءات</th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-white">
+          <tbody className="table-body">
             {items.map((item) => (
               <tr key={item.id}>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 table-cell-right">{item.name}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 table-cell-right">{item.category_name}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 table-cell-right">{item.warehouse_name}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 table-cell-right">{item.quantity}</td>
-                <td className="px-6 py-4 text-sm text-gray-500 table-cell-right">{item.description || '-'}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium table-cell-right">
+                <td className="table-cell table-cell-right">{item.name}</td>
+                <td className="table-cell table-cell-right">{item.category_name}</td>
+                <td className="table-cell table-cell-right">{item.warehouse_name}</td>
+                <td className="table-cell table-cell-right">{item.quantity}</td>
+                <td className="table-cell table-cell-right">{item.description || '-'}</td>
+                <td className="table-cell table-cell-right">
                   <button
                     onClick={() => handleEdit(item)}
                     className="text-blue-600 hover:text-blue-900 ml-3"
@@ -405,7 +405,7 @@ function ItemsPage() {
         </table>
         
         {items.length === 0 && (
-          <div className="text-center py-8 text-gray-500">
+          <div className="table-empty-state">
             <p>لا توجد عناصر مسجلة</p>
           </div>
         )}
@@ -414,13 +414,13 @@ function ItemsPage() {
       {/* Mobile Card View */}
       <div className="md:hidden">
         {items.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
+          <div className="table-empty-state">
             <p>لا توجد عناصر مسجلة</p>
           </div>
         ) : (
           <div className="space-y-4">
             {items.map((item) => (
-              <div key={item.id} className="border border-gray-200 rounded-lg p-4 bg-white shadow-sm">
+              <div key={item.id} className="table-card">
                 <div className="grid grid-cols-2 gap-2">
                   <div className="font-medium text-gray-700">اسم العنصر:</div>
                   <div className="text-gray-900">{item.name}</div>

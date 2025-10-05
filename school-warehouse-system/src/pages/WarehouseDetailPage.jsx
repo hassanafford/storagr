@@ -673,25 +673,25 @@ function WarehouseDetailPage() {
           )}
 
           {/* Desktop Table View */}
-          <div className="hidden md:block overflow-x-auto w-full">
-            <table className="min-w-full divide-y divide-white">
+          <div className="hidden md:block table-container w-full">
+            <table className="unified-table">
               <thead className="table-header-blue">
                 <tr>
-                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">اسم العنصر</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">الفئة</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">الكمية</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">الوصف</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">الإجراءات</th>
+                  <th className="table-cell table-cell-right">اسم العنصر</th>
+                  <th className="table-cell table-cell-right">الفئة</th>
+                  <th className="table-cell table-cell-right">الكمية</th>
+                  <th className="table-cell table-cell-right">الوصف</th>
+                  <th className="table-cell table-cell-right">الإجراءات</th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-white">
+              <tbody className="table-body">
                 {items.map((item) => (
                   <tr key={item.id}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 table-cell-right">{item.name}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 table-cell-right">{item.category_name}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 table-cell-right">{item.quantity}</td>
-                    <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate table-cell-right">{item.description || '-'}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium table-cell-right">
+                    <td className="table-cell table-cell-right">{item.name}</td>
+                    <td className="table-cell table-cell-right">{item.category_name}</td>
+                    <td className="table-cell table-cell-right">{item.quantity}</td>
+                    <td className="table-cell table-cell-right">{item.description || '-'}</td>
+                    <td className="table-cell table-cell-right">
                       <button
                         onClick={() => handleEdit(item)}
                         className="text-blue-600 hover:text-blue-900 ml-3"
@@ -711,7 +711,7 @@ function WarehouseDetailPage() {
             </table>
 
             {items.length === 0 && (
-              <div className="text-center py-8 text-gray-500">
+              <div className="table-empty-state">
                 <p>لا توجد عناصر في هذا المخزن</p>
               </div>
             )}
@@ -720,13 +720,13 @@ function WarehouseDetailPage() {
           {/* Mobile Card View */}
           <div className="md:hidden w-full">
             {items.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
+              <div className="table-empty-state">
                 <p>لا توجد عناصر في هذا المخزن</p>
               </div>
             ) : (
               <div className="space-y-4 w-full">
                 {items.map((item) => (
-                  <div key={item.id} className="border border-gray-200 rounded-lg p-4 bg-white shadow-sm w-full">
+                  <div key={item.id} className="table-card w-full">
                     <div className="grid grid-cols-2 gap-2">
                       <div className="font-medium text-gray-700">اسم العنصر:</div>
                       <div className="text-gray-900">{item.name}</div>
@@ -1030,40 +1030,39 @@ function WarehouseDetailPage() {
           <h3 className="text-xl font-bold text-gray-800 mb-6">سجل الحركات</h3>
 
           {/* Desktop Table View */}
-          <div className="hidden md:block overflow-x-auto w-full">
-            <table className="min-w-full divide-y divide-white">
+          <div className="hidden md:block table-container w-full">
+            <table className="unified-table">
               <thead className="table-header-blue">
                 <tr>
-                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">النوع</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">العنصر</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">المخزن</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">الكمية</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">المستلم/الحالة</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">المستخدم</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">التاريخ</th>
+                  <th className="table-cell table-cell-right">النوع</th>
+                  <th className="table-cell table-cell-right">العنصر</th>
+                  <th className="table-cell table-cell-right">المخزن</th>
+                  <th className="table-cell table-cell-right">الكمية</th>
+                  <th className="table-cell table-cell-right">المستلم/الحالة</th>
+                  <th className="table-cell table-cell-right">المستخدم</th>
+                  <th className="table-cell table-cell-right">التاريخ</th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-white">
+              <tbody className="table-body">
                 {transactions.map((transaction) => (
                   <tr key={transaction.id}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 table-cell-right">
+                    <td className="table-cell table-cell-right">
                       {transaction.transaction_type === 'out' && 'صرف'}
                       {transaction.transaction_type === 'in' && 'إرجاع'}
                       {transaction.transaction_type === 'adjustment' && 'تعديل'}
                       {transaction.transaction_type === 'audit' && 'جرد'}
                       {transaction.transaction_type === 'transfer' && 'تحويل'}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 table-cell-right">{transaction.items?.name || 'غير محدد'}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 table-cell-right">{transaction.items?.warehouses?.name || 'غير محدد'}</td>
-                    <td className={`px-6 py-4 whitespace-nowrap text-sm ${transaction.quantity < 0 ? 'text-red-600' : 'text-green-600'
-                      } table-cell-right`}>
+                    <td className="table-cell table-cell-right">{transaction.items?.name || 'غير محدد'}</td>
+                    <td className="table-cell table-cell-right">{transaction.items?.warehouses?.name || 'غير محدد'}</td>
+                    <td className={`table-cell table-cell-right ${transaction.quantity < 0 ? 'text-red-600' : 'text-green-600'}`}>
                       {transaction.quantity > 0 ? '+' : ''}{transaction.quantity}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 table-cell-right">
+                    <td className="table-cell table-cell-right">
                       {transaction.recipient}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 table-cell-right">{transaction.users?.name || 'غير محدد'}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 table-cell-right">{formatTimeAgo(transaction.created_at)}</td>
+                    <td className="table-cell table-cell-right">{transaction.users?.name || 'غير محدد'}</td>
+                    <td className="table-cell table-cell-right">{formatTimeAgo(transaction.created_at)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -1075,7 +1074,7 @@ function WarehouseDetailPage() {
             {transactions.length > 0 ? (
               <div className="space-y-4 w-full">
                 {transactions.map((transaction) => (
-                  <div key={transaction.id} className="border border-gray-200 rounded-lg p-4 bg-white shadow-sm w-full">
+                  <div key={transaction.id} className="table-card w-full">
                     <div className="grid grid-cols-2 gap-2">
                       <div className="font-medium text-gray-700">النوع:</div>
                       <div className="text-gray-900">
@@ -1111,7 +1110,7 @@ function WarehouseDetailPage() {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-8 text-gray-500">
+              <div className="table-empty-state">
                 <p>لا توجد حركات في هذا المخزن</p>
               </div>
             )}

@@ -203,21 +203,21 @@ function CategoriesPage() {
       )}
 
       {/* Desktop Table View */}
-      <div className="hidden md:block overflow-x-auto">
-        <table className="min-w-full divide-y divide-white">
+      <div className="hidden md:block table-container">
+        <table className="unified-table">
           <thead className="table-header-blue">
             <tr>
-              <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">اسم الفئة</th>
-              <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">المخزن</th>
-              <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">الإجراءات</th>
+              <th className="table-cell table-cell-right">اسم الفئة</th>
+              <th className="table-cell table-cell-right">المخزن</th>
+              <th className="table-cell table-cell-right">الإجراءات</th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-white">
+          <tbody className="table-body">
             {categories.map((category) => (
               <tr key={category.id}>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 table-cell-right">{category.name}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 table-cell-right">{category.warehouse_name}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium table-cell-right">
+                <td className="table-cell table-cell-right">{category.name}</td>
+                <td className="table-cell table-cell-right">{category.warehouse_name}</td>
+                <td className="table-cell table-cell-right">
                   <button
                     onClick={() => handleEdit(category)}
                     className="text-blue-600 hover:text-blue-900 ml-3"
@@ -237,7 +237,7 @@ function CategoriesPage() {
         </table>
         
         {categories.length === 0 && (
-          <div className="text-center py-8 text-gray-500">
+          <div className="table-empty-state">
             <p>لا توجد فئات مسجلة</p>
           </div>
         )}
@@ -246,13 +246,13 @@ function CategoriesPage() {
       {/* Mobile Card View */}
       <div className="md:hidden">
         {categories.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
+          <div className="table-empty-state">
             <p>لا توجد فئات مسجلة</p>
           </div>
         ) : (
           <div className="space-y-4">
             {categories.map((category) => (
-              <div key={category.id} className="border border-gray-200 rounded-lg p-4 bg-white shadow-sm">
+              <div key={category.id} className="table-card">
                 <div className="grid grid-cols-2 gap-2">
                   <div className="font-medium text-gray-700">اسم الفئة:</div>
                   <div className="text-gray-900">{category.name}</div>
