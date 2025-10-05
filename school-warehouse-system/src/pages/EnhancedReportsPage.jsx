@@ -449,37 +449,37 @@ const EnhancedReportsPage = () => {
         <div>
           {/* Desktop Table View */}
           <div className="hidden md:block overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+            <table className="min-w-full divide-y divide-white">
+              <thead className="table-header-blue">
                 <tr>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">العنصر</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">المخزن</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">النوع</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الكمية</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">المستخدم</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">التاريخ</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">العنصر</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">المخزن</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">النوع</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">الكمية</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">المستخدم</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">التاريخ</th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-white divide-y divide-white">
                 {transactions.map((transaction) => (
                   <tr key={transaction.id}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{transaction.item_name}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{transaction.warehouse_name}</td>
-                    <td className={`px-6 py-4 whitespace-nowrap text-sm ${getTransactionTypeColor(transaction.transaction_type)}`}>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 table-cell-right">{transaction.item_name}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 table-cell-right">{transaction.warehouse_name}</td>
+                    <td className={`px-6 py-4 whitespace-nowrap text-sm ${getTransactionTypeColor(transaction.transaction_type)} table-cell-right`}>
                       {formatTransactionType(transaction.transaction_type)}
                     </td>
                     <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${
                       transaction.quantity < 0 ? 'text-red-600' : 'text-green-600'
-                    }`}>
+                    } table-cell-right`}>
                       {transaction.quantity > 0 ? '+' : ''}{transaction.quantity}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 table-cell-right">
                       <div className="flex items-center gap-1">
                         <User className="h-4 w-4" />
                         {transaction.user_name}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 table-cell-right">
                       {formatTimeAgo(transaction.created_at)}
                     </td>
                   </tr>
@@ -556,35 +556,35 @@ const EnhancedReportsPage = () => {
 
           {/* Desktop Table View */}
           <div className="hidden md:block overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+            <table className="min-w-full divide-y divide-white">
+              <thead className="table-header-blue">
                 <tr>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">العنصر</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">المخزن</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">المتوقع</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الفعلي</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الاختلاف</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">المستخدم</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">التاريخ</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">العنصر</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">المخزن</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">المتوقع</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">الفعلي</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">الاختلاف</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">المستخدم</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">التاريخ</th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-white divide-y divide-white">
                 {dailyAudits.map((audit) => (
                   <tr key={audit.id}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{audit.item_name}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{audit.warehouse_name}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{audit.expected_quantity}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{audit.actual_quantity}</td>
-                    <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${getAuditDifferenceColor(audit.difference)}`}>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 table-cell-right">{audit.item_name}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 table-cell-right">{audit.warehouse_name}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 table-cell-right">{audit.expected_quantity}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 table-cell-right">{audit.actual_quantity}</td>
+                    <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${getAuditDifferenceColor(audit.difference)} table-cell-right`}>
                       {audit.difference > 0 ? '+' : ''}{audit.difference}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 table-cell-right">
                       <div className="flex items-center gap-1">
                         <User className="h-4 w-4" />
                         {audit.user_name}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 table-cell-right">
                       {formatTimeAgo(audit.created_at)}
                     </td>
                   </tr>
@@ -660,24 +660,24 @@ const EnhancedReportsPage = () => {
 
           {/* Desktop Table View */}
           <div className="hidden md:block overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+            <table className="min-w-full divide-y divide-white">
+              <thead className="table-header-blue">
                 <tr>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">العنصر</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">المخزن</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الكمية المتاحة</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الحد الأدنى</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الحالة</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">العنصر</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">المخزن</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">الكمية المتاحة</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">الحد الأدنى</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">الحالة</th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-white divide-y divide-white">
                 {lowInventoryItems.map((item) => (
                   <tr key={item.id}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{item.name}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.warehouse_name}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.quantity}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.min_quantity}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 table-cell-right">{item.name}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 table-cell-right">{item.warehouse_name}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 table-cell-right">{item.quantity}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 table-cell-right">{item.min_quantity}</td>
+                    <td className="px-6 py-4 whitespace-nowrap table-cell-right">
                       <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
                         منخفض
                       </span>

@@ -244,3 +244,24 @@
     flex-wrap: wrap;
   }
 }
+
+/* Custom table styling for consistent blue headers with white borders */
+.table-header-blue {
+  background-color: #3498db; /* Blue header */
+  color: white;
+  border-color: white;
+}
+
+.table-header-blue th {
+  color: white;
+  border-color: white;
+  text-align: right;
+}
+
+.table-cell-right {
+  text-align: right;
+}
+
+.table-border-white {
+  border-color: white;
+}

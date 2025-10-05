@@ -672,24 +672,24 @@ function WarehouseDetailPage() {
 
           {/* Desktop Table View */}
           <div className="hidden md:block overflow-x-auto w-full">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+            <table className="min-w-full divide-y divide-white">
+              <thead className="table-header-blue">
                 <tr>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">اسم العنصر</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الفئة</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الكمية</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الوصف</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الإجراءات</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">اسم العنصر</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">الفئة</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">الكمية</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">الوصف</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">الإجراءات</th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-white divide-y divide-white">
                 {items.map((item) => (
                   <tr key={item.id}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{item.name}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.category_name}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.quantity}</td>
-                    <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">{item.description || '-'}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 table-cell-right">{item.name}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 table-cell-right">{item.category_name}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 table-cell-right">{item.quantity}</td>
+                    <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate table-cell-right">{item.description || '-'}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium table-cell-right">
                       <button
                         onClick={() => handleEdit(item)}
                         className="text-blue-600 hover:text-blue-900 ml-3"
@@ -1029,39 +1029,39 @@ function WarehouseDetailPage() {
 
           {/* Desktop Table View */}
           <div className="hidden md:block overflow-x-auto w-full">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+            <table className="min-w-full divide-y divide-white">
+              <thead className="table-header-blue">
                 <tr>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">النوع</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">العنصر</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">المخزن</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الكمية</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">المستلم/الحالة</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">المستخدم</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">التاريخ</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">النوع</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">العنصر</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">المخزن</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">الكمية</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">المستلم/الحالة</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">المستخدم</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">التاريخ</th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-white divide-y divide-white">
                 {transactions.map((transaction) => (
                   <tr key={transaction.id}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 table-cell-right">
                       {transaction.transaction_type === 'out' && 'صرف'}
                       {transaction.transaction_type === 'in' && 'إرجاع'}
                       {transaction.transaction_type === 'adjustment' && 'تعديل'}
                       {transaction.transaction_type === 'audit' && 'جرد'}
                       {transaction.transaction_type === 'transfer' && 'تحويل'}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{transaction.items?.name || 'غير محدد'}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{transaction.items?.warehouses?.name || 'غير محدد'}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 table-cell-right">{transaction.items?.name || 'غير محدد'}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 table-cell-right">{transaction.items?.warehouses?.name || 'غير محدد'}</td>
                     <td className={`px-6 py-4 whitespace-nowrap text-sm ${transaction.quantity < 0 ? 'text-red-600' : 'text-green-600'
-                      }`}>
+                      } table-cell-right`}>
                       {transaction.quantity > 0 ? '+' : ''}{transaction.quantity}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 table-cell-right">
                       {transaction.recipient}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{transaction.users?.name || 'غير محدد'}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatTimeAgo(transaction.created_at)}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 table-cell-right">{transaction.users?.name || 'غير محدد'}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 table-cell-right">{formatTimeAgo(transaction.created_at)}</td>
                   </tr>
                 ))}
               </tbody>

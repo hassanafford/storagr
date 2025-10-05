@@ -229,32 +229,32 @@ const Reports = () => {
           {/* Transactions Table */}
           {/* Desktop Table View */}
           <div className="hidden md:block overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+            <table className="min-w-full divide-y divide-white">
+              <thead className="table-header-blue">
                 <tr>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">العنصر</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">المخزن</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">المستخدم</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">النوع</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الكمية</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">المستلم</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">التاريخ</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">العنصر</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">المخزن</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">المستخدم</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">النوع</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">الكمية</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">المستلم</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">التاريخ</th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-white divide-y divide-white">
                 {filteredTransactions.length > 0 ? (
                   filteredTransactions.map((transaction) => (
                     <tr key={transaction.id}>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 table-cell-right">
                         {transaction.items?.name || 'غير محدد'}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 table-cell-right">
                         {transaction.items?.warehouses?.name || 'غير محدد'}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 table-cell-right">
                         {transaction.users?.name || 'غير محدد'}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm table-cell-right">
                         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                           transaction.transaction_type === 'out' ? 'bg-blue-100 text-blue-800' :
                           transaction.transaction_type === 'in' ? 'bg-green-100 text-green-800' :
@@ -263,13 +263,13 @@ const Reports = () => {
                           {getTransactionTypeLabel(transaction.transaction_type)}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 table-cell-right">
                         {transaction.quantity}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 table-cell-right">
                         {transaction.recipient}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 table-cell-right">
                         {formatDate(transaction.created_at)}
                       </td>
                     </tr>

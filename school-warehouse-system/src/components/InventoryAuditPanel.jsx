@@ -176,17 +176,17 @@ const InventoryAuditPanel = () => {
         <>
           {/* Desktop Table View */}
           <div className="hidden md:block overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+            <table className="min-w-full divide-y divide-white">
+              <thead className="table-header-blue">
                 <tr>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">العنصر</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الكمية المسجلة</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الكمية الفعلية</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الاختلاف</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">ملاحظات</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">العنصر</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">الكمية المسجلة</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">الكمية الفعلية</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">الاختلاف</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">ملاحظات</th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-white divide-y divide-white">
                 {items.map((item) => {
                   const auditItem = auditData[item.id] || {
                     physical_quantity: item.quantity,
@@ -196,14 +196,14 @@ const InventoryAuditPanel = () => {
                   
                   return (
                     <tr key={item.id}>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 table-cell-right">
                         {item.name}
                         <div className="text-xs text-gray-500">{item.category_name}</div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 table-cell-right">
                         {item.quantity}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 table-cell-right">
                         <input
                           type="number"
                           min="0"
@@ -212,7 +212,7 @@ const InventoryAuditPanel = () => {
                           className="w-24 px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         />
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm table-cell-right">
                         <span className={`font-medium ${
                           auditItem.difference > 0 ? 'text-green-600' : 
                           auditItem.difference < 0 ? 'text-red-600' : 'text-gray-500'
@@ -220,7 +220,7 @@ const InventoryAuditPanel = () => {
                           {auditItem.difference > 0 ? '+' : ''}{auditItem.difference}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 table-cell-right">
                         <input
                           type="text"
                           value={auditItem.notes}

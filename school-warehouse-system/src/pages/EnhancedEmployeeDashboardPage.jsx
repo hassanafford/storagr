@@ -311,39 +311,39 @@ const EnhancedEmployeeDashboardPage = ({ user }) => {
               </CardHeader>
               <CardContent>
                 <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
+                  <table className="min-w-full divide-y divide-white">
+                    <thead className="table-header-blue">
                       <tr>
-                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">النوع</th>
-                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">العنصر</th>
-                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">المخزن</th>
-                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الكمية</th>
-                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">المستخدم</th>
-                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">التاريخ</th>
+                        <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">النوع</th>
+                        <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">العنصر</th>
+                        <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">المخزن</th>
+                        <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">الكمية</th>
+                        <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">المستخدم</th>
+                        <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">التاريخ</th>
                       </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
+                    <tbody className="bg-white divide-y divide-white">
                       {transactions.length > 0 ? (
                         transactions.map((transaction) => (
                           <tr key={transaction.id}>
-                            <td className={`px-6 py-4 whitespace-nowrap text-sm ${getTransactionTypeColor(transaction.transaction_type)}`}>
+                            <td className={`px-6 py-4 whitespace-nowrap text-sm ${getTransactionTypeColor(transaction.transaction_type)} table-cell-right`}>
                               {getTransactionTypeLabel(transaction.transaction_type)}
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 table-cell-right">
                               {transaction.items?.name || 'غير محدد'}
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 table-cell-right">
                               {transaction.items?.warehouses?.name || 'غير محدد'}
                             </td>
                             <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${
                               transaction.quantity < 0 ? 'text-red-600' : 'text-green-600'
-                            }`}>
+                            } table-cell-right`}>
                               {transaction.quantity > 0 ? '+' : ''}{transaction.quantity}
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 table-cell-right">
                               {transaction.users?.name || 'غير محدد'}
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 table-cell-right">
                               {formatTimeAgo(transaction.created_at)}
                             </td>
                           </tr>

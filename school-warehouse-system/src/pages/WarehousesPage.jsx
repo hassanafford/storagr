@@ -231,26 +231,26 @@ function WarehousesPage() {
 
       {/* Desktop Table View */}
       <div className="hidden md:block overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+        <table className="min-w-full divide-y divide-white">
+          <thead className="table-header-blue">
             <tr>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">اسم المخزن</th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الوصف</th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">عدد العناصر</th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الكمية الإجمالية</th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الإجراءات</th>
+              <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">اسم المخزن</th>
+              <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">الوصف</th>
+              <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">عدد العناصر</th>
+              <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">الكمية الإجمالية</th>
+              <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">الإجراءات</th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="bg-white divide-y divide-white">
             {warehouses.map((warehouse) => {
               const stats = warehouseStats[warehouse.id] || { total_items: 0, total_quantity: 0 };
               return (
                 <tr key={warehouse.id}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{warehouse.name}</td>
-                  <td className="px-6 py-4 text-sm text-gray-500">{warehouse.description || '-'}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{stats.total_items || 0}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{stats.total_quantity || 0}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 table-cell-right">{warehouse.name}</td>
+                  <td className="px-6 py-4 text-sm text-gray-500 table-cell-right">{warehouse.description || '-'}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 table-cell-right">{stats.total_items || 0}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 table-cell-right">{stats.total_quantity || 0}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium table-cell-right">
                     <button
                       onClick={() => handleEdit(warehouse)}
                       className="text-blue-600 hover:text-blue-900 ml-3"

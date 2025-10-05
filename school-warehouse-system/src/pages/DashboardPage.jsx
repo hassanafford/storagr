@@ -380,20 +380,20 @@ function DashboardPage({ user }) {
             </div>
 
             <div className="bg-white rounded-lg shadow overflow-hidden overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+              <table className="min-w-full divide-y divide-white">
+                <thead className="table-header-blue">
                   <tr>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">العنصر</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">المخزن</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الكمية</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">العنصر</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">المخزن</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">الكمية</th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-white divide-y divide-white">
                   {lowInventoryItems.slice(0, 5).map((item) => (
                     <tr key={item.id}>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{item.name}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.warehouse_name}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-red-600 font-bold">{item.quantity}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 table-cell-right">{item.name}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 table-cell-right">{item.warehouse_name}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-red-600 font-bold table-cell-right">{item.quantity}</td>
                     </tr>
                   ))}
                 </tbody>

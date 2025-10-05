@@ -968,25 +968,25 @@ function TransactionLog({ addNotification, user, warehouse }) {
 
       <div className="bg-white rounded-lg shadow overflow-hidden">
         {transactions.length > 0 ? (
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full divide-y divide-white">
+            <thead className="table-header-blue">
               <tr>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">العنصر</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">المخزن</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">النوع</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الكمية</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">المستلم</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">المستخدم</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">التاريخ</th>
+                <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">العنصر</th>
+                <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">المخزن</th>
+                <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">النوع</th>
+                <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">الكمية</th>
+                <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">المستلم</th>
+                <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">المستخدم</th>
+                <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">التاريخ</th>
 
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-white divide-y divide-white">
               {transactions.map((transaction) => (
                 <tr key={transaction.id}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{transaction.items?.name || 'غير محدد'}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{transaction.items?.warehouses?.name || 'غير محدد'}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 table-cell-right">{transaction.items?.name || 'غير محدد'}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 table-cell-right">{transaction.items?.warehouses?.name || 'غير محدد'}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm table-cell-right">
                     <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${transaction.transaction_type === 'out' ? 'bg-blue-100 text-blue-800' :
                       transaction.transaction_type === 'in' ? 'bg-green-100 text-green-800' :
                         'bg-purple-100 text-purple-800'
@@ -999,10 +999,10 @@ function TransactionLog({ addNotification, user, warehouse }) {
                                 transaction.transaction_type}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{Math.abs(transaction.quantity)}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{transaction.recipient}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{transaction.users?.name || 'غير محدد'}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatTimeAgo(transaction.created_at)}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 table-cell-right">{Math.abs(transaction.quantity)}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 table-cell-right">{transaction.recipient}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 table-cell-right">{transaction.users?.name || 'غير محدد'}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 table-cell-right">{formatTimeAgo(transaction.created_at)}</td>
                 </tr>
               ))}
             </tbody>

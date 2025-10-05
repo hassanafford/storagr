@@ -366,26 +366,26 @@ function ItemsPage() {
 
       {/* Desktop Table View */}
       <div className="hidden md:block overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+        <table className="min-w-full divide-y divide-white">
+          <thead className="table-header-blue">
             <tr>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">اسم العنصر</th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الفئة</th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">المخزن</th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الكمية</th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الوصف</th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الإجراءات</th>
+              <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">اسم العنصر</th>
+              <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">الفئة</th>
+              <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">المخزن</th>
+              <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">الكمية</th>
+              <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">الوصف</th>
+              <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">الإجراءات</th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="bg-white divide-y divide-white">
             {items.map((item) => (
               <tr key={item.id}>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{item.name}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.category_name}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.warehouse_name}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.quantity}</td>
-                <td className="px-6 py-4 text-sm text-gray-500">{item.description || '-'}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 table-cell-right">{item.name}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 table-cell-right">{item.category_name}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 table-cell-right">{item.warehouse_name}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 table-cell-right">{item.quantity}</td>
+                <td className="px-6 py-4 text-sm text-gray-500 table-cell-right">{item.description || '-'}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium table-cell-right">
                   <button
                     onClick={() => handleEdit(item)}
                     className="text-blue-600 hover:text-blue-900 ml-3"
