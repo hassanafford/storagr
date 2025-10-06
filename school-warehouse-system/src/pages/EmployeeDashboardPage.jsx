@@ -984,8 +984,8 @@ function TransactionLog({ addNotification, user, warehouse }) {
             <tbody className="bg-white divide-y divide-white">
               {transactions.map((transaction) => (
                 <tr key={transaction.id}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 table-cell-right">{transaction.items?.name || 'غير محدد'}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 table-cell-right">{transaction.items?.warehouses?.name || 'غير محدد'}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 table-cell-right">{transaction.item_name || 'غير محدد'}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 table-cell-right">{transaction.warehouse_name || 'غير محدد'}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm table-cell-right">
                     <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${transaction.transaction_type === 'out' ? 'bg-blue-100 text-blue-800' :
                       transaction.transaction_type === 'in' ? 'bg-green-100 text-green-800' :

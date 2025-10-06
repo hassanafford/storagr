@@ -278,13 +278,13 @@ const EnhancedEmployeeDashboardPage = ({ user }) => {
                               {getTransactionTypeLabel(transaction.transaction_type)}
                             </p>
                             <p className="text-sm text-gray-600">
-                              {Math.abs(transaction.quantity)} {transaction.items?.name || 'غير محدد'}
+                              {Math.abs(transaction.quantity)} {transaction.item_name || 'غير محدد'}
                             </p>
                             <p className="text-xs text-gray-500 mt-1">
-                              {transaction.users?.name || 'غير محدد'} | {formatTimeAgo(transaction.created_at)}
+                              {transaction.user_name || 'غير محدد'} | {formatTimeAgo(transaction.created_at)}
                             </p>
                             <p className="text-xs text-gray-500">
-                              مخزن: {transaction.items?.warehouses?.name || 'غير محدد'}
+                              مخزن: {transaction.warehouse_name || 'غير محدد'}
                             </p>
                           </div>
 
@@ -330,10 +330,10 @@ const EnhancedEmployeeDashboardPage = ({ user }) => {
                               {getTransactionTypeLabel(transaction.transaction_type)}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 table-cell-right">
-                              {transaction.items?.name || 'غير محدد'}
+                              {transaction.item_name || 'غير محدد'}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 table-cell-right">
-                              {transaction.items?.warehouses?.name || 'غير محدد'}
+                              {transaction.warehouse_name || 'غير محدد'}
                             </td>
                             <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${
                               transaction.quantity < 0 ? 'text-red-600' : 'text-green-600'
@@ -341,7 +341,7 @@ const EnhancedEmployeeDashboardPage = ({ user }) => {
                               {transaction.quantity > 0 ? '+' : ''}{transaction.quantity}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 table-cell-right">
-                              {transaction.users?.name || 'غير محدد'}
+                              {transaction.user_name || 'غير محدد'}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 table-cell-right">
                               {formatTimeAgo(transaction.created_at)}

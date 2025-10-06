@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { getWarehouseByIdService, getWarehouseItemsService } from '../services/warehouseService';
-import { getTransactionsByWarehouseService, updateItemQuantityService, createTransactionService, getItemsByWarehouseService, createItemService } from '../services/itemService';
+import { getTransactionsByWarehouseService, updateItemQuantityService, createTransactionService, getItemsByWarehouseService, createItemService, updateItemService, deleteItemService } from '../services/itemService';
 import { getCurrentUser } from '../services/userService';
 import { subscribeToInventoryUpdates, subscribeToTransactions } from '../services/realtimeService';
 import { useNotification } from '../components/NotificationProvider';
@@ -526,7 +526,7 @@ function WarehouseDetailPage() {
                 </div>
                 <div className="bg-green-100 p-3 rounded-lg">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
               </div>
@@ -598,8 +598,8 @@ function WarehouseDetailPage() {
                       <option value="3">أدوات تنظيف</option>
                       <option value="4">مستلزمات المكتب</option>
                       <option value="5">معدات مختبر كيمياء</option>
-                      <option value="6"> equipos مختبر فيزياء</option>
-                      <option value="7"> equipos مختبر بيولوجيا</option>
+                      <option value="6">معدات مختبر فيزياء</option>
+                      <option value="7">معدات مختبر بيولوجيا</option>
                       <option value="8">كتب دراسية</option>
                       <option value="9">كتب مرجعية</option>
                       <option value="10">مجلات</option>
@@ -1053,15 +1053,15 @@ function WarehouseDetailPage() {
                       {transaction.transaction_type === 'audit' && 'جرد'}
                       {transaction.transaction_type === 'transfer' && 'تحويل'}
                     </td>
-                    <td className="table-cell table-cell-right">{transaction.items?.name || 'غير محدد'}</td>
-                    <td className="table-cell table-cell-right">{transaction.items?.warehouses?.name || 'غير محدد'}</td>
+                    <td className="table-cell table-cell-right">{transaction.item_name || 'غير محدد'}</td>
+                    <td className="table-cell table-cell-right">{transaction.warehouse_name || 'غير محدد'}</td>
                     <td className={`table-cell table-cell-right ${transaction.quantity < 0 ? 'text-red-600' : 'text-green-600'}`}>
                       {transaction.quantity > 0 ? '+' : ''}{transaction.quantity}
                     </td>
                     <td className="table-cell table-cell-right">
                       {transaction.recipient}
                     </td>
-                    <td className="table-cell table-cell-right">{transaction.users?.name || 'غير محدد'}</td>
+                    <td className="table-cell table-cell-right">{transaction.user_name || 'غير محدد'}</td>
                     <td className="table-cell table-cell-right">{formatTimeAgo(transaction.created_at)}</td>
                   </tr>
                 ))}
@@ -1086,10 +1086,10 @@ function WarehouseDetailPage() {
                       </div>
 
                       <div className="font-medium text-gray-700">العنصر:</div>
-                      <div className="text-gray-900">{transaction.items?.name || 'غير محدد'}</div>
+                      <div className="text-gray-900">{transaction.item_name || 'غير محدد'}</div>
 
                       <div className="font-medium text-gray-700">المخزن:</div>
-                      <div className="text-gray-900">{transaction.items?.warehouses?.name || 'غير محدد'}</div>
+                      <div className="text-gray-900">{transaction.warehouse_name || 'غير محدد'}</div>
 
                       <div className="font-medium text-gray-700">الكمية:</div>
                       <div className={`text-gray-900 ${transaction.quantity < 0 ? 'text-red-600' : 'text-green-600'
@@ -1101,7 +1101,7 @@ function WarehouseDetailPage() {
                       <div className="text-gray-900">{transaction.recipient}</div>
 
                       <div className="font-medium text-gray-700">المستخدم:</div>
-                      <div className="text-gray-900">{transaction.users?.name || 'غير محدد'}</div>
+                      <div className="text-gray-900">{transaction.user_name || 'غير محدد'}</div>
 
                       <div className="font-medium text-gray-700">التاريخ:</div>
                       <div className="text-gray-900">{formatTimeAgo(transaction.created_at)}</div>

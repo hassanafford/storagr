@@ -21,6 +21,10 @@ import ItemsPage from './pages/ItemsPage';
 import CategoriesPage from './pages/CategoriesPage';
 import WarehouseDetailPage from './pages/WarehouseDetailPage';
 import DataVerification from './components/DataVerification';
+import InventoryAuditPage from './pages/InventoryAuditPage';
+import EmployeeInventoryAuditPage from './pages/EmployeeInventoryAuditPage';
+import TransactionsPage from './pages/TransactionsPage';
+import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -127,6 +131,8 @@ function App() {
             <Route path="/items" element={<ItemsPage />} />
             <Route path="/categories" element={<CategoriesPage />} />
             <Route path="/verify-data" element={<DataVerification />} />
+            <Route path="/inventory-audits" element={<ProtectedRoute user={user} allowedRoles={['admin']}><InventoryAuditPage user={user} /></ProtectedRoute>} />
+            <Route path="/transactions" element={<TransactionsPage />} />
             {/* Redirect any other paths to admin dashboard */}
             <Route path="*" element={<DashboardPage user={user} />} />
           </Routes>
@@ -136,6 +142,7 @@ function App() {
             <Route path="/" element={<EnhancedEmployeeDashboardPage user={user} />} />
             <Route path="/dashboard" element={<EnhancedEmployeeDashboardPage user={user} />} />
             <Route path="/reports" element={<ReportsPage />} />
+            <Route path="/inventory-audits" element={<ProtectedRoute user={user} allowedRoles={['employee']}><EmployeeInventoryAuditPage user={user} /></ProtectedRoute>} />
             {/* Employee can only access their specific warehouse */}
             {user.warehouse_id && (
               <Route path="/warehouse" element={<Navigate to={`/warehouses/${user.warehouse_id}`} replace />} />
@@ -260,12 +267,14 @@ function Header({ user, onLogout }) {
     { name: 'الفئات', path: '/categories', icon: <Tag className="h-4 w-4" /> },
     { name: 'التقارير', path: '/reports', icon: <FileText className="h-4 w-4" /> },
     { name: 'التحقق من البيانات', path: '/verify-data', icon: <FileText className="h-4 w-4" /> },
+    { name: 'إدارة الجرد', path: '/inventory-audits', icon: <FileText className="h-4 w-4" /> },
   ];
 
   // Employee navigation items
   const employeeNavItems = [
     { name: 'لوحة التحكم', path: '/dashboard', icon: <Home className="h-4 w-4" /> },
     { name: 'مخزني', path: '/warehouse', icon: <Warehouse className="h-4 w-4" /> },
+    { name: 'عمليات الجرد', path: '/inventory-audits', icon: <FileText className="h-4 w-4" /> },
   ];
 
   const navItems = user.role === 'admin' ? adminNavItems : employeeNavItems;

@@ -124,10 +124,10 @@ const EnhancedAdminDashboardPage = ({ user }) => {
           id: transaction.id,
           type: type,
           title: title,
-          description: `${Math.abs(transaction.quantity)} ${transaction.items?.name || 'غير محدد'} - ${transaction.recipient}`,
+          description: `${Math.abs(transaction.quantity)} ${transaction.item_name || 'غير محدد'} - ${transaction.recipient}`,
           time: formatTimeAgo(toEgyptianTime(new Date(transaction.created_at))),
-          warehouse: transaction.items?.warehouses?.name || 'غير محدد',
-          user: transaction.users?.name || 'غير محدد',
+          warehouse: transaction.warehouse_name || 'غير محدد',
+          user: transaction.user_name || 'غير محدد',
           icon: icon
         };
       });

@@ -22,16 +22,46 @@ const Reports = () => {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [transactionsData, warehousesData, itemsData] = await Promise.all([
-          getTransactionsService(),
-          getAllWarehousesService(),
-          getAllItemsService()
-        ]);
+        // Use only the transactions service since it already includes item and warehouse data
+        const transactionsData = await getTransactionsService();
+        
+        // Debug: Log the transaction data
+        console.log('Transactions data in Reports component:', transactionsData);
+        
+        // Extract unique warehouses and items from transactions
+        const uniqueWarehouses = [];
+        const uniqueItems = [];
+        
+        transactionsData.forEach(transaction => {
+          // Debug: Log each transaction
+          console.log('Transaction in Reports:', transaction);
+          
+          // Add warehouse if not already added
+          if (transaction.warehouse_name && transaction.warehouse_id && 
+              !uniqueWarehouses.find(w => w.id === transaction.warehouse_id)) {
+            uniqueWarehouses.push({
+              id: transaction.warehouse_id,
+              name: transaction.warehouse_name
+            });
+          }
+          
+          // Add item if not already added
+          if (transaction.item_name && transaction.item_id && 
+              !uniqueItems.find(i => i.id === transaction.item_id)) {
+            uniqueItems.push({
+              id: transaction.item_id,
+              name: transaction.item_name
+            });
+          }
+        });
+        
+        console.log('Unique warehouses:', uniqueWarehouses);
+        console.log('Unique items:', uniqueItems);
         
         setTransactions(transactionsData);
         setFilteredTransactions(transactionsData);
-        setWarehouses(warehousesData);
-        setItems(itemsData);
+        setWarehouses(uniqueWarehouses);
+        setItems(uniqueItems);
         setLoading(false);
       } catch (error) {
         console.error('Error loading report data:', error);
@@ -48,13 +78,13 @@ const Reports = () => {
     
     if (filter.warehouse) {
       filtered = filtered.filter(transaction => 
-        items.find(item => item.id === transaction.item_id)?.warehouse_id == filter.warehouse
+        transaction.warehouse_id == filter.warehouse
       );
     }
     
     if (filter.itemType) {
       filtered = filtered.filter(transaction => 
-        items.find(item => item.id === transaction.item_id)?.category_id == filter.itemType
+        transaction.category_id == filter.itemType
       );
     }
     
@@ -81,12 +111,12 @@ const Reports = () => {
       }
       
       filtered = filtered.filter(transaction => 
-        toEgyptianTime(transaction.created_at) >= startDate
+        transaction.created_at && toEgyptianTime(transaction.created_at) >= startDate
       );
     }
     
     setFilteredTransactions(filtered);
-  }, [filter, transactions, items]);
+  }, [filter, transactions]);
 
   const handleFilterChange = (field, value) => {
     setFilter(prev => ({
@@ -246,13 +276,13 @@ const Reports = () => {
                   filteredTransactions.map((transaction) => (
                     <tr key={transaction.id}>
                       <td className="table-cell table-cell-right">
-                        {transaction.items?.name || 'غير محدد'}
+                        {transaction.item_name || 'عنصر محذوف'}
                       </td>
                       <td className="table-cell table-cell-right">
-                        {transaction.items?.warehouses?.name || 'غير محدد'}
+                        {transaction.warehouse_name || 'مخزن غير محدد'}
                       </td>
                       <td className="table-cell table-cell-right">
-                        {transaction.users?.name || 'غير محدد'}
+                        {transaction.user_name || 'مستخدم غير معروف'}
                       </td>
                       <td className="table-cell table-cell-right">
                         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
@@ -267,7 +297,7 @@ const Reports = () => {
                         {transaction.quantity}
                       </td>
                       <td className="table-cell table-cell-right">
-                        {transaction.recipient}
+                        {transaction.recipient || '-'}
                       </td>
                       <td className="table-cell table-cell-right">
                         {formatDate(transaction.created_at)}
@@ -293,13 +323,13 @@ const Reports = () => {
                   <div key={transaction.id} className="table-card">
                     <div className="grid grid-cols-2 gap-2">
                       <div className="font-medium text-gray-700">العنصر:</div>
-                      <div className="text-gray-900">{transaction.items?.name || 'غير محدد'}</div>
+                      <div className="text-gray-900">{transaction.item_name || 'عنصر محذوف'}</div>
                       
                       <div className="font-medium text-gray-700">المخزن:</div>
-                      <div className="text-gray-900">{transaction.items?.warehouses?.name || 'غير محدد'}</div>
+                      <div className="text-gray-900">{transaction.warehouse_name || 'مخزن غير محدد'}</div>
 
                       <div className="font-medium text-gray-700">المستخدم:</div>
-                      <div className="text-gray-900">{transaction.users?.name || 'غير محدد'}</div>
+                      <div className="text-gray-900">{transaction.user_name || 'مستخدم غير معروف'}</div>
 
                       <div className="font-medium text-gray-700">النوع:</div>
                       <div className="text-gray-900">
@@ -316,7 +346,7 @@ const Reports = () => {
                       <div className="text-gray-900">{transaction.quantity}</div>
                       
                       <div className="font-medium text-gray-700">المستلم:</div>
-                      <div className="text-gray-900">{transaction.recipient}</div>
+                      <div className="text-gray-900">{transaction.recipient || '-'}</div>
                       
                       <div className="font-medium text-gray-700">التاريخ:</div>
                       <div className="text-gray-900">{formatDate(transaction.created_at)}</div>

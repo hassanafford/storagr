@@ -326,6 +326,12 @@
   text-align: left;
 }
 
+/* Ensure table header cells align properly with body cells */
+.table-header-blue th.table-cell-right,
+.table-header-blue th.table-cell-right.cursor-pointer {
+  text-align: right !important;
+}
+
 /* Table borders */
 .table-border-white {
   border-color: white;
@@ -362,3 +368,14 @@
   color: #94a3b8;
   font-size: 0.875rem;
 }
+
+/* Debug styling to see table cell boundaries - temporary */
+/*
+.table-header-blue th {
+  border: 1px solid yellow !important;
+}
+
+.table-body td {
+  border: 1px solid red !important;
+}
+*/

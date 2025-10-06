@@ -53,6 +53,7 @@ export const createTransactionService = async (transactionData) => {
 export const getTransactionsService = async () => {
   try {
     const data = await getTransactions();
+    console.log('Transaction data from service:', data);
     return data;
   } catch (error) {
     console.error('Error fetching transactions:', error);

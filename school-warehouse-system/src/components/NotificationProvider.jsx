@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { subscribeToNotifications, subscribeToBroadcast, unsubscribeAll } from '../services/realtimeService';
 import { formatEgyptianDateTime } from '../lib/timeUtils';
 import { getEgyptianTime } from '../lib/timeUtils';
@@ -14,6 +15,7 @@ export const useNotification = () => {
 };
 
 export const NotificationProvider = ({ children }) => {
+  const navigate = useNavigate();
   const [notifications, setNotifications] = useState([]);
 
   // الاستماع للإشعارات الفورية من Supabase
@@ -69,6 +71,11 @@ export const NotificationProvider = ({ children }) => {
     setNotifications(prev => prev.filter(notification => notification.id !== id));
   };
 
+  const handleNotificationClick = () => {
+    // Navigate to transactions page when notification is clicked
+    navigate('/transactions');
+  };
+
   return (
     <NotificationContext.Provider value={{ notifications, addNotification, removeNotification }}>
       {children}
@@ -76,14 +83,16 @@ export const NotificationProvider = ({ children }) => {
         {notifications.map((notification) => (
           <div
             key={notification.id}
-            className={`p-4 rounded-lg shadow-lg flex items-start max-w-md ${notification.type === 'success'
+            className={`p-4 rounded-lg shadow-lg flex items-start max-w-md cursor-pointer ${
+              notification.type === 'success'
                 ? 'bg-green-100 border border-green-200 text-green-800'
                 : notification.type === 'error'
                   ? 'bg-red-100 border border-red-200 text-red-800'
                   : notification.type === 'warning'
                     ? 'bg-yellow-100 border border-yellow-200 text-yellow-800'
                     : 'bg-blue-100 border border-blue-200 text-blue-800'
-              }`}
+            }`}
+            onClick={handleNotificationClick}
           >
             <div className="mr-2 mt-0.5">
               {notification.type === 'success' ? (
@@ -119,7 +128,10 @@ export const NotificationProvider = ({ children }) => {
               )}
             </div>
             <button
-              onClick={() => removeNotification(notification.id)}
+              onClick={(e) => {
+                e.stopPropagation();
+                removeNotification(notification.id);
+              }}
               className="text-gray-400 hover:text-gray-600 ml-2"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">

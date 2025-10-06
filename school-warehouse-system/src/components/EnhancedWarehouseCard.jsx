@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
 import { Package, TrendingUp, TrendingDown, Minus, AlertCircle, Clock, User } from 'lucide-react';
@@ -8,6 +9,7 @@ import { formatTimeAgo } from '../lib/timeUtils';
 const EnhancedWarehouseCard = ({ warehouse, onClick, transactions = [] }) => {
   const [warehouseTransactions, setWarehouseTransactions] = useState([]);
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   console.log('Rendering EnhancedWarehouseCard:', warehouse);
 
@@ -99,6 +101,16 @@ const EnhancedWarehouseCard = ({ warehouse, onClick, transactions = [] }) => {
     }
   };
 
+  // Get item name with fallback
+  const getItemName = (transaction) => {
+    return transaction.item_name || 'عنصر محذوف';
+  };
+
+  // Get user name with fallback
+  const getUserName = (transaction) => {
+    return transaction.user_name || 'مستخدم غير معروف';
+  };
+
   return (
     <Card 
       className={`cursor-pointer transition-all duration-300 hover:shadow-xl rounded-xl border shadow-sm hover:scale-105 transform ${statusConfig.cardClass} h-full`}
@@ -133,13 +145,17 @@ const EnhancedWarehouseCard = ({ warehouse, onClick, transactions = [] }) => {
             </h4>
             <div className="space-y-1">
               {recentTransactions.map((transaction) => (
-                <div key={transaction.id} className="text-xs flex justify-between items-center">
+                <div 
+                  key={transaction.id} 
+                  className="text-xs flex justify-between items-center cursor-pointer hover:bg-gray-100 p-1 rounded"
+                  onClick={() => navigate('/transactions')}
+                >
                   <span className={getTransactionTypeColor(transaction.transaction_type)}>
-                    {getTransactionTypeLabel(transaction.transaction_type)}
+                    {getTransactionTypeLabel(transaction.transaction_type)} {getItemName(transaction)}
                   </span>
                   <span className="text-gray-500 flex items-center gap-1">
                     <User className="h-3 w-3" />
-                    {transaction.user_name}
+                    {getUserName(transaction)}
                   </span>
                 </div>
               ))}

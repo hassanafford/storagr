@@ -41,6 +41,8 @@ DROP FUNCTION IF EXISTS get_warehouse_stats(BIGINT) CASCADE;
 
 -- حذف الجداول بالترتيب الصحيح (من الأصغر للأكبر)
 DROP TABLE IF EXISTS notifications CASCADE;
+DROP TABLE IF EXISTS audit_details CASCADE;
+DROP TABLE IF EXISTS inventory_audits CASCADE;
 DROP TABLE IF EXISTS transactions CASCADE;
 DROP TABLE IF EXISTS daily_audits CASCADE;
 DROP TABLE IF EXISTS items CASCADE;
@@ -146,6 +148,34 @@ CREATE TABLE audit_logs (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
+-- جدول عمليات الجرد (Inventory Audits)
+CREATE TABLE inventory_audits (
+  id BIGSERIAL PRIMARY KEY,
+  warehouse_id BIGINT REFERENCES warehouses(id) ON DELETE CASCADE,
+  user_id BIGINT REFERENCES users(id) ON DELETE SET NULL,
+  audit_type VARCHAR(50) NOT NULL CHECK (audit_type IN ('full', 'partial', 'spot')),
+  status VARCHAR(50) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'in_progress', 'completed', 'cancelled')),
+  notes TEXT,
+  started_at TIMESTAMP WITH TIME ZONE,
+  completed_at TIMESTAMP WITH TIME ZONE,
+  egyptian_timestamp VARCHAR(50),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- جدول تفاصيل الجرد (Audit Details)
+CREATE TABLE audit_details (
+  id BIGSERIAL PRIMARY KEY,
+  inventory_audit_id BIGINT REFERENCES inventory_audits(id) ON DELETE CASCADE,
+  item_id BIGINT REFERENCES items(id) ON DELETE CASCADE,
+  expected_quantity INTEGER NOT NULL,
+  actual_quantity INTEGER NOT NULL,
+  discrepancy INTEGER,
+  status VARCHAR(50) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'verified', 'disputed')),
+  notes TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
 -- جدول المراجعات اليومية (Daily Audits)
 CREATE TABLE daily_audits (
   id BIGSERIAL PRIMARY KEY,
@@ -185,6 +215,16 @@ CREATE INDEX idx_notifications_created ON notifications(created_at DESC);
 
 CREATE INDEX idx_audit_logs_user ON audit_logs(user_id);
 CREATE INDEX idx_audit_logs_table ON audit_logs(table_name, record_id);
+
+CREATE INDEX idx_inventory_audits_warehouse ON inventory_audits(warehouse_id);
+CREATE INDEX idx_inventory_audits_user ON inventory_audits(user_id);
+CREATE INDEX idx_inventory_audits_status ON inventory_audits(status);
+CREATE INDEX idx_inventory_audits_created ON inventory_audits(created_at DESC);
+
+CREATE INDEX idx_audit_details_inventory_audit ON audit_details(inventory_audit_id);
+CREATE INDEX idx_audit_details_item ON audit_details(item_id);
+CREATE INDEX idx_audit_details_status ON audit_details(status);
+CREATE INDEX idx_audit_details_created ON audit_details(created_at DESC);
 
 CREATE INDEX idx_daily_audits_warehouse ON daily_audits(warehouse_id);
 CREATE INDEX idx_daily_audits_item ON daily_audits(item_id);
@@ -345,6 +385,12 @@ BEFORE UPDATE ON items
 FOR EACH ROW
 EXECUTE FUNCTION update_updated_at_column();
 
+-- Trigger لتحديث updated_at على جداول الجرد
+CREATE TRIGGER update_inventory_audits_updated_at
+BEFORE UPDATE ON inventory_audits
+FOR EACH ROW
+EXECUTE FUNCTION update_updated_at_column();
+
 -- Trigger لفحص الكمية المنخفضة
 CREATE TRIGGER trigger_check_low_stock
 AFTER INSERT OR UPDATE OF quantity ON items
@@ -364,6 +410,8 @@ ALTER TABLE transactions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE audit_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE daily_audits ENABLE ROW LEVEL SECURITY;
+ALTER TABLE inventory_audits ENABLE ROW LEVEL SECURITY;
+ALTER TABLE audit_details ENABLE ROW LEVEL SECURITY;
 
 -- سياسات المستودعات - السماح بالوصول الكامل (للتطوير)
 CREATE POLICY "Allow public read access to warehouses" ON warehouses
@@ -456,6 +504,32 @@ CREATE POLICY "Allow public update to audit_logs" ON audit_logs
 CREATE POLICY "Allow public delete to audit_logs" ON audit_logs
   FOR DELETE USING (true);
 
+-- سياسات عمليات الجرد - السماح بالوصول الكامل (للتطوير)
+CREATE POLICY "Allow public read access to inventory_audits" ON inventory_audits
+  FOR SELECT USING (true);
+
+CREATE POLICY "Allow public insert to inventory_audits" ON inventory_audits
+  FOR INSERT WITH CHECK (true);
+
+CREATE POLICY "Allow public update to inventory_audits" ON inventory_audits
+  FOR UPDATE USING (true);
+
+CREATE POLICY "Allow public delete to inventory_audits" ON inventory_audits
+  FOR DELETE USING (true);
+
+-- سياسات تفاصيل الجرد - السماح بالوصول الكامل (للتطوير)
+CREATE POLICY "Allow public read access to audit_details" ON audit_details
+  FOR SELECT USING (true);
+
+CREATE POLICY "Allow public insert to audit_details" ON audit_details
+  FOR INSERT WITH CHECK (true);
+
+CREATE POLICY "Allow public update to audit_details" ON audit_details
+  FOR UPDATE USING (true);
+
+CREATE POLICY "Allow public delete to audit_details" ON audit_details
+  FOR DELETE USING (true);
+
 -- سياسات المراجعات اليومية - السماح بالوصول الكامل
 CREATE POLICY "Allow public read access to daily_audits" ON daily_audits
   FOR SELECT USING (true);
@@ -492,14 +566,35 @@ INSERT INTO warehouses (id, name, description) VALUES
 SELECT setval('warehouses_id_seq', 12, true);
 
 -- إنشاء فئات تجريبية
-INSERT INTO categories (name, description) VALUES
-  ('قرطاسية', 'أدوات مكتبية وقرطاسية'),
-  ('أثاث', 'أثاث مدرسي وأدوات'),
-  ('إلكترونيات', 'أجهزة إلكترونية وملحقاتها'),
-  ('نظافة', 'مواد ومستلزمات التنظيف'),
-  ('كتب', 'كتب دراسية ومراجع'),
-  ('رياضة', 'معدات رياضية'),
-  ('مختبرات', 'أدوات ومعدات المختبرات');
+INSERT INTO categories (id, name, description) VALUES
+  (1, 'أدوات مدرسية', 'أدوات مدرسية متنوعة'),
+  (2, 'معدات إلكترونية', 'أجهزة إلكترونية وملحقاتها'),
+  (3, 'أدوات تنظيف', 'مواد ومستلزمات التنظيف'),
+  (4, 'مستلزمات المكتب', 'مستلزمات المكتب والقرطاسية'),
+  (5, 'معدات مختبر كيمياء', 'معدات ومعدات مختبر الكيمياء'),
+  (6, 'معدات مختبر فيزياء', 'معدات ومعدات مختبر الفيزياء'),
+  (7, 'معدات مختبر بيولوجيا', 'معدات ومعدات مختبر البيولوجيا'),
+  (8, 'كتب دراسية', 'كتب دراسية للمناهج الدراسية'),
+  (9, 'كتب مرجعية', 'كتب مرجعية وموسوعات'),
+  (10, 'مجلات', 'مجلات علمية وثقافية'),
+  (11, 'زي مدرسي', 'الزي الرسمي للطلاب'),
+  (12, 'بدلات رياضة', 'بدلات الرياضة والنشاطات'),
+  (13, 'مكاتب', 'المكاتب والأثاث المدرسي'),
+  (14, 'كراسي', 'الكراسي والأثاث المدرسي'),
+  (15, 'ألواح', 'الألواح الدراسية والتعليمية'),
+  (16, 'حاسبات', 'الحاسبات والآلات الحاسبة'),
+  (17, 'سماعات', 'السماعات والإكسسوارات الصوتية'),
+  (18, 'شاشات', 'الشاشات وأجهزة العرض'),
+  (19, 'مساطر', 'المساطر والأدوات القياسية'),
+  (20, 'أقلام', 'الأقلام وأنواعها'),
+  (21, 'كراسات', 'الكراسات والدفاتر الدراسية'),
+  (22, 'وجبات خفيفة', 'الوجبات الخفيفة والمدارس'),
+  (23, 'مشروبات', 'المشروبات والسوائل'),
+  (24, 'منظفات', 'المنظفات والمواد الكيميائية'),
+  (25, 'مناديل', 'المناديل والورق الاستخدام الواحد');
+
+-- تحديث sequence للفئات
+SELECT setval('categories_id_seq', 25, true);
 
 -- إنشاء المستخدمين (1 admin + 12 employee)
 -- كلمة المرور = آخر 6 أرقام من الرقم القومي (مشفرة بـ SHA-256)
@@ -598,6 +693,51 @@ LEFT JOIN categories c ON i.category_id = c.id
 WHERE i.quantity <= i.min_quantity
 ORDER BY i.quantity ASC;
 
+-- عرض لعمليات الجرد مع معلومات كاملة
+CREATE OR REPLACE VIEW inventory_audits_full_view AS
+SELECT 
+  ia.id,
+  ia.audit_type,
+  ia.status,
+  ia.notes,
+  ia.started_at,
+  ia.completed_at,
+  ia.egyptian_timestamp,
+  w.name as warehouse_name,
+  w.id as warehouse_id,
+  u.name as user_name,
+  u.id as user_id,
+  ia.created_at,
+  ia.updated_at
+FROM inventory_audits ia
+LEFT JOIN warehouses w ON ia.warehouse_id = w.id
+LEFT JOIN users u ON ia.user_id = u.id;
+
+-- عرض لتفاصيل الجرد مع معلومات كاملة
+CREATE OR REPLACE VIEW audit_details_full_view AS
+SELECT 
+  ad.id,
+  ad.inventory_audit_id,
+  ad.expected_quantity,
+  ad.actual_quantity,
+  ad.discrepancy,
+  ad.status as detail_status,
+  ad.notes,
+  i.name as item_name,
+  i.id as item_id,
+  ia.audit_type,
+  ia.status as audit_status,
+  w.name as warehouse_name,
+  w.id as warehouse_id,
+  u.name as user_name,
+  u.id as user_id,
+  ad.created_at
+FROM audit_details ad
+LEFT JOIN inventory_audits ia ON ad.inventory_audit_id = ia.id
+LEFT JOIN items i ON ad.item_id = i.id
+LEFT JOIN warehouses w ON i.warehouse_id = w.id
+LEFT JOIN users u ON ia.user_id = u.id;
+
 -- عرض للمراجعات اليومية مع معلومات كاملة
 CREATE OR REPLACE VIEW daily_audits_full_view AS
 SELECT 
@@ -634,7 +774,9 @@ SELECT
   (SELECT COUNT(*) FROM users) as "عدد المستخدمين",
   (SELECT COUNT(*) FROM items) as "عدد الأصناف",
   (SELECT COUNT(*) FROM transactions) as "عدد المعاملات",
-  (SELECT COUNT(*) FROM daily_audits) as "عدد المراجعات اليومية";
+  (SELECT COUNT(*) FROM daily_audits) as "عدد المراجعات اليومية",
+  (SELECT COUNT(*) FROM inventory_audits) as "عدد عمليات الجرد",
+  (SELECT COUNT(*) FROM audit_details) as "عدد تفاصيل الجرد";
 
 -- عرض قائمة المخازن
 SELECT 

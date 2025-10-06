@@ -121,8 +121,8 @@ export const getWarehouseItems = async (id) => {
     .from('items')
     .select(`
       *,
-      categories:name,
-      warehouses:name
+      categories!inner(name),
+      warehouses!inner(name)
     `)
     .eq('warehouse_id', id);
 
@@ -308,12 +308,8 @@ export const deleteUser = async (id) => {
 // Item functions
 export const getItemById = async (id) => {
   const { data, error } = await supabase
-    .from('items')
-    .select(`
-      *,
-      categories:name,
-      warehouses:name
-    `)
+    .from('items_full_view')
+    .select('*')
     .eq('id', id)
     .single();
 
@@ -331,12 +327,8 @@ export const getItemById = async (id) => {
 
 export const getItemsByWarehouse = async (warehouseId) => {
   const { data, error } = await supabase
-    .from('items')
-    .select(`
-      *,
-      categories:name,
-      warehouses:name
-    `)
+    .from('items_full_view')
+    .select('*')
     .eq('warehouse_id', warehouseId);
 
   if (error) {
@@ -388,12 +380,8 @@ export const updateItemQuantity = async (itemId, quantityChange) => {
 
 export const getAllItems = async () => {
   const { data, error } = await supabase
-    .from('items')
-    .select(`
-      *,
-      categories:name,
-      warehouses:name
-    `)
+    .from('items_full_view')
+    .select('*')
     .order('name');
 
   if (error) {
@@ -448,26 +436,39 @@ export const createTransaction = async (transactionData) => {
 
 export const getTransactions = async () => {
   const { data, error } = await supabase
-    .from('transactions')
-    .select(`
-      *,
-      items!inner (
-        name,
-        warehouse_id,
-        warehouses (name)
-      ),
-      users!inner (
-        name
-      )
-    `)
+    .from('transactions_full_view')
+    .select('*')
     .order('created_at', { ascending: false });
 
   if (error) {
     console.error('Error fetching transactions:', error);
     throw new Error('Failed to fetch transactions');
   }
+  
+  // Debug: Log the raw data
+  console.log('Raw transaction data from database:', data);
+  
+  // Process the data to ensure proper structure and handle missing data
+  const processedData = data.map(transaction => {
+    // Debug: Log each transaction before processing
+    console.log('Processing transaction:', transaction);
+    
+    // Create a safe copy of the transaction with proper fallbacks
+    const processedTransaction = {
+      ...transaction,
+      item_name: transaction.item_name || 'عنصر محذوف',
+      user_name: transaction.user_name || 'مستخدم غير معروف',
+      warehouse_name: transaction.warehouse_name || 'مخزن غير محدد'
+    };
+    
+    // Debug: Log the processed transaction
+    console.log('Processed transaction:', processedTransaction);
+    
+    return processedTransaction;
+  });
 
-  return data;
+  console.log('Processed transaction data:', processedData);
+  return processedData;
 };
 
 export const getTransactionsByWarehouse = async (warehouseId) => {
@@ -475,7 +476,7 @@ export const getTransactionsByWarehouse = async (warehouseId) => {
     .from('transactions')
     .select(`
       *,
-      items!inner (
+      items (
         name,
         warehouse_id,
         warehouses (name)
@@ -565,12 +566,8 @@ export const getDailyAudits = async (params = {}) => {
 // Low inventory function
 export const getLowInventoryItems = async (threshold = 10) => {
   const { data, error } = await supabase
-    .from('items')
-    .select(`
-      *,
-      categories:name,
-      warehouses:name
-    `)
+    .from('low_stock_items_view')
+    .select('*')
     .lte('quantity', threshold)
     .order('quantity', { ascending: true });
 
@@ -814,4 +811,248 @@ export const deleteItem = async (id) => {
   }
 
   return { message: 'Item deleted successfully' };
+};
+
+// Inventory Audit functions
+export const createInventoryAudit = async (auditData) => {
+  // Get Egyptian timestamp
+  const egyptianTimestamp = new Date().toLocaleString('en-US', { 
+    timeZone: 'Africa/Cairo',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false
+  }).replace(',', '');
+
+  const { data, error } = await supabase
+    .from('inventory_audits')
+    .insert({
+      warehouse_id: auditData.warehouse_id,
+      user_id: auditData.user_id,
+      audit_type: auditData.audit_type,
+      notes: auditData.notes,
+      started_at: new Date().toISOString(),
+      egyptian_timestamp: egyptianTimestamp
+    })
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error creating inventory audit:', error);
+    throw new Error('Failed to create inventory audit');
+  }
+
+  return {
+    ...data,
+    message: 'Inventory audit created successfully'
+  };
+};
+
+export const getInventoryAudits = async (params = {}) => {
+  let query = supabase
+    .from('inventory_audits')
+    .select(`
+      *,
+      warehouses (name),
+      users (name)
+    `)
+    .order('created_at', { ascending: false });
+
+  if (params.warehouseId) {
+    query = query.eq('warehouse_id', params.warehouseId);
+  }
+
+  if (params.userId) {
+    query = query.eq('user_id', params.userId);
+  }
+
+  if (params.status) {
+    query = query.eq('status', params.status);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    console.error('Error fetching inventory audits:', error);
+    throw new Error('Failed to fetch inventory audits');
+  }
+
+  return data;
+};
+
+export const getInventoryAuditById = async (id) => {
+  const { data, error } = await supabase
+    .from('inventory_audits')
+    .select(`
+      *,
+      warehouses (name),
+      users (name)
+    `)
+    .eq('id', id)
+    .single();
+
+  if (error) {
+    console.error('Error fetching inventory audit:', error);
+    throw new Error('Failed to fetch inventory audit');
+  }
+
+  if (!data) {
+    throw new Error('Inventory audit not found');
+  }
+
+  return data;
+};
+
+export const updateInventoryAudit = async (id, updateData) => {
+  const { data, error } = await supabase
+    .from('inventory_audits')
+    .update(updateData)
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error updating inventory audit:', error);
+    throw new Error('Failed to update inventory audit');
+  }
+
+  if (!data) {
+    throw new Error('Inventory audit not found');
+  }
+
+  return {
+    ...data,
+    message: 'Inventory audit updated successfully'
+  };
+};
+
+export const createAuditDetail = async (detailData) => {
+  // Calculate discrepancy
+  const discrepancy = detailData.actual_quantity - detailData.expected_quantity;
+
+  const { data, error } = await supabase
+    .from('audit_details')
+    .insert({
+      inventory_audit_id: detailData.inventory_audit_id,
+      item_id: detailData.item_id,
+      expected_quantity: detailData.expected_quantity,
+      actual_quantity: detailData.actual_quantity,
+      discrepancy: discrepancy,
+      notes: detailData.notes
+    })
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error creating audit detail:', error);
+    throw new Error('Failed to create audit detail');
+  }
+
+  return {
+    ...data,
+    message: 'Audit detail created successfully'
+  };
+};
+
+export const getAuditDetailsByAuditId = async (inventoryAuditId) => {
+  const { data, error } = await supabase
+    .from('audit_details')
+    .select(`
+      *,
+      items (name)
+    `)
+    .eq('inventory_audit_id', inventoryAuditId)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching audit details:', error);
+    throw new Error('Failed to fetch audit details');
+  }
+
+  return data;
+};
+
+export const updateAuditDetail = async (id, updateData) => {
+  const { data, error } = await supabase
+    .from('audit_details')
+    .update(updateData)
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error updating audit detail:', error);
+    throw new Error('Failed to update audit detail');
+  }
+
+  if (!data) {
+    throw new Error('Audit detail not found');
+  }
+
+  return {
+    ...data,
+    message: 'Audit detail updated successfully'
+  };
+};
+
+export const getAuditStatistics = async (warehouseId = null) => {
+  let query = supabase
+    .from('inventory_audits')
+    .select(`
+      status,
+      count:count()
+    `)
+    .group('status');
+
+  if (warehouseId) {
+    query = query.eq('warehouse_id', warehouseId);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    console.error('Error fetching audit statistics:', error);
+    throw new Error('Failed to fetch audit statistics');
+  }
+
+  // Convert to object for easier access
+  const stats = {};
+  data.forEach(item => {
+    stats[item.status] = item.count;
+  });
+
+  return stats;
+};
+
+export const getDiscrepancyReport = async (params = {}) => {
+  let query = supabase
+    .from('audit_details')
+    .select(`
+      *,
+      items (name),
+      inventory_audits (audit_type, status),
+      warehouses (name)
+    `)
+    .neq('discrepancy', 0)
+    .order('discrepancy', { ascending: false });
+
+  if (params.warehouseId) {
+    query = query.eq('items.warehouse_id', params.warehouseId);
+  }
+
+  if (params.auditId) {
+    query = query.eq('inventory_audit_id', params.auditId);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    console.error('Error fetching discrepancy report:', error);
+    throw new Error('Failed to fetch discrepancy report');
+  }
+
+  return data;
 };
