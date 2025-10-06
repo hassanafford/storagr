@@ -4,7 +4,7 @@ import { Navigate } from 'react-router-dom';
 const ProtectedRoute = ({ children, user, allowedRoles }) => {
   // If no user is logged in, redirect to login
   if (!user) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/login" replace />;
   }
 
   // If allowedRoles is not specified, allow access
@@ -18,11 +18,7 @@ const ProtectedRoute = ({ children, user, allowedRoles }) => {
   }
 
   // If user's role is not allowed, redirect to appropriate dashboard
-  if (user.role === 'admin') {
-    return <Navigate to="/dashboard" replace />;
-  } else {
-    return <Navigate to="/dashboard" replace />;
-  }
+  return <Navigate to="/dashboard" replace />;
 };
 
 export default ProtectedRoute;

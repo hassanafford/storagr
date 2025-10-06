@@ -111,48 +111,102 @@ function App() {
     });
   };
 
-  if (!isLoggedIn) {
-    return <LoginPage onLogin={handleLogin} />;
+  return (
+    <div className="app min-h-screen bg-gray-50 w-full overflow-x-hidden">
+      <Routes>
+        {/* Public route - Login page */}
+        <Route path="/login" element={
+          isLoggedIn ? <Navigate to={user?.role === 'admin' ? "/dashboard" : "/dashboard"} replace /> : 
+          <LoginPage onLogin={handleLogin} />
+        } />
+        
+        {/* Root path - redirect to appropriate location */}
+        <Route path="/" element={
+          isLoggedIn ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />
+        } />
+        
+        {/* Protected routes */}
+        <Route path="/*" element={
+          <ProtectedLayout user={user} isLoggedIn={isLoggedIn} handleLogout={handleLogout}>
+            <Routes>
+              {user?.role === 'admin' ? (
+                // Admin routes
+                <>
+                  <Route path="/dashboard" element={<DashboardPage user={user} />} />
+                  <Route path="/reports" element={<ReportsPage />} />
+                  <Route path="/warehouses" element={<WarehousesPage />} />
+                  <Route path="/warehouses/:id" element={<WarehouseDetailPage />} />
+                  <Route path="/items" element={<ItemsPage />} />
+                  <Route path="/categories" element={<CategoriesPage />} />
+                  <Route path="/verify-data" element={<DataVerification />} />
+                  <Route path="/inventory-audits" element={
+                    <ProtectedRoute user={user} allowedRoles={['admin']}>
+                      <InventoryAuditPage user={user} />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/transactions" element={<TransactionsPage />} />
+                  {/* Redirect any other paths to admin dashboard */}
+                  <Route path="*" element={<Navigate to="/dashboard" replace />} />
+                </>
+              ) : user?.role === 'employee' ? (
+                // Employee routes
+                <>
+                  <Route path="/dashboard" element={<EnhancedEmployeeDashboardPage user={user} />} />
+                  <Route path="/reports" element={<ReportsPage />} />
+                  <Route path="/inventory-audits" element={
+                    <ProtectedRoute user={user} allowedRoles={['employee']}>
+                      <EmployeeInventoryAuditPage user={user} />
+                    </ProtectedRoute>
+                  } />
+                  {/* Employee can only access their specific warehouse */}
+                  {user.warehouse_id && (
+                    <Route path="/warehouse" element={<Navigate to={`/warehouses/${user.warehouse_id}`} replace />} />
+                  )}
+                  {/* Redirect any other paths to employee dashboard */}
+                  <Route path="*" element={<Navigate to="/dashboard" replace />} />
+                </>
+              ) : (
+                // If no user role, redirect to login
+                <Route path="*" element={<Navigate to="/login" replace />} />
+              )}
+            </Routes>
+          </ProtectedLayout>
+        } />
+      </Routes>
+    </div>
+  );
+}
+
+// Protected layout component that wraps protected routes
+function ProtectedLayout({ user, isLoggedIn, handleLogout, children }) {
+  // Check if user is logged in
+  const isAuthenticated = isLoggedIn && user;
+  
+  // If we're still checking authentication state, show a loading indicator
+  if (isAuthenticated === undefined || (isLoggedIn && !user)) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4" dir="rtl">
+        <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md text-center">
+          <div className="flex justify-center mb-4">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+          </div>
+          <p className="text-gray-600">جاري التحقق من بيانات الدخول...</p>
+        </div>
+      </div>
+    );
+  }
+  
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
   }
 
   return (
-    <div className="app min-h-screen bg-gray-50 w-full overflow-x-hidden">
-      {/* Pass user to Header for role-based navigation */}
+    <>
       <Header user={user} onLogout={handleLogout} />
       <main className="w-full px-4 py-8">
-        {user.role === 'admin' ? (
-          // Use proper Routes for admin navigation
-          <Routes>
-            <Route path="/" element={<DashboardPage user={user} />} />
-            <Route path="/dashboard" element={<DashboardPage user={user} />} />
-            <Route path="/reports" element={<ReportsPage />} />
-            <Route path="/warehouses" element={<WarehousesPage />} />
-            <Route path="/warehouses/:id" element={<WarehouseDetailPage />} />
-            <Route path="/items" element={<ItemsPage />} />
-            <Route path="/categories" element={<CategoriesPage />} />
-            <Route path="/verify-data" element={<DataVerification />} />
-            <Route path="/inventory-audits" element={<ProtectedRoute user={user} allowedRoles={['admin']}><InventoryAuditPage user={user} /></ProtectedRoute>} />
-            <Route path="/transactions" element={<TransactionsPage />} />
-            {/* Redirect any other paths to admin dashboard */}
-            <Route path="*" element={<DashboardPage user={user} />} />
-          </Routes>
-        ) : (
-          // Use proper Routes for employee navigation
-          <Routes>
-            <Route path="/" element={<EnhancedEmployeeDashboardPage user={user} />} />
-            <Route path="/dashboard" element={<EnhancedEmployeeDashboardPage user={user} />} />
-            <Route path="/reports" element={<ReportsPage />} />
-            <Route path="/inventory-audits" element={<ProtectedRoute user={user} allowedRoles={['employee']}><EmployeeInventoryAuditPage user={user} /></ProtectedRoute>} />
-            {/* Employee can only access their specific warehouse */}
-            {user.warehouse_id && (
-              <Route path="/warehouse" element={<Navigate to={`/warehouses/${user.warehouse_id}`} replace />} />
-            )}
-            {/* Redirect any other paths to employee dashboard */}
-            <Route path="*" element={<EnhancedEmployeeDashboardPage user={user} />} />
-          </Routes>
-        )}
+        {children}
       </main>
-    </div>
+    </>
   );
 }
 
@@ -256,7 +310,7 @@ function Header({ user, onLogout }) {
       message: 'لقد تم تسجيل الخروج بنجاح.',
       type: 'info'
     });
-    navigate('/'); // Navigate to home after logout
+    navigate('/login'); // Navigate to login after logout
   };
 
   // Admin navigation items

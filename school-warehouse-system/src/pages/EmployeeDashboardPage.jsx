@@ -1001,7 +1001,7 @@ function TransactionLog({ addNotification, user, warehouse }) {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 table-cell-right">{Math.abs(transaction.quantity)}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 table-cell-right">{transaction.recipient}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 table-cell-right">{transaction.users?.name || 'غير محدد'}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 table-cell-right">{transaction.user_name || 'غير محدد'}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 table-cell-right">{formatTimeAgo(transaction.created_at)}</td>
                 </tr>
               ))}

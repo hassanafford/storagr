@@ -473,19 +473,9 @@ export const getTransactions = async () => {
 
 export const getTransactionsByWarehouse = async (warehouseId) => {
   const { data, error } = await supabase
-    .from('transactions')
-    .select(`
-      *,
-      items (
-        name,
-        warehouse_id,
-        warehouses (name)
-      ),
-      users!inner (
-        name
-      )
-    `)
-    .eq('items.warehouse_id', warehouseId)
+    .from('transactions_full_view')
+    .select('*')
+    .eq('warehouse_id', warehouseId)
     .order('created_at', { ascending: false });
 
   if (error) {
@@ -493,7 +483,27 @@ export const getTransactionsByWarehouse = async (warehouseId) => {
     throw new Error('Failed to fetch transactions');
   }
 
-  return data;
+  // Process the data to ensure proper structure and handle missing data
+  const processedData = data.map(transaction => {
+    // Debug: Log each transaction before processing
+    console.log('Processing transaction:', transaction);
+    
+    // Create a safe copy of the transaction with proper fallbacks
+    const processedTransaction = {
+      ...transaction,
+      item_name: transaction.item_name || 'عنصر محذوف',
+      user_name: transaction.user_name || 'مستخدم غير معروف',
+      warehouse_name: transaction.warehouse_name || 'مخزن غير محدد'
+    };
+    
+    // Debug: Log the processed transaction
+    console.log('Processed transaction:', processedTransaction);
+    
+    return processedTransaction;
+  });
+
+  console.log('Processed transaction data:', processedData);
+  return processedData;
 };
 
 // Daily audit functions
